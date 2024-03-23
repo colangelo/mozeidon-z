@@ -10,8 +10,8 @@ import (
 
 var CloseTabCmd = &cobra.Command{
 	Use:   "close",
-	Short: "close a tab by id",
-	Long:  ``,
+	Short: `Close one or more tabs`,
+	Long:  "close one or more tabs by id(s)\n\nRequired argument(s):\nOne or more string, each composed of {windowId}:{tabId} \ne.g\n  mozeidon tabs close 3:112 3:113\n\n",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(_ *cobra.Command, args []string) {
 		app, err := core.NewApp()
