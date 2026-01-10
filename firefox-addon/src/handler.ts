@@ -6,6 +6,7 @@ import { getHistory, deleteHistory } from "./services/history"
 import { log } from "./logger"
 import { Response } from "./models/response"
 import {
+  activateTab,
   closeTabs,
   duplicateTab,
   getRecentlyClosedTabs,
@@ -25,6 +26,8 @@ export async function handler(port: Port, cmd: Command) {
       return await getRecentlyClosedTabs(port, cmd)
     case CommandName.SWITCH_TAB:
       return await switchToTab(port, cmd)
+    case CommandName.ACTIVATE_TAB:
+      return await activateTab(port, cmd)
     case CommandName.UPDATE_TAB:
       return await updateTabs(port, cmd)
     case CommandName.CLOSE_TABS:

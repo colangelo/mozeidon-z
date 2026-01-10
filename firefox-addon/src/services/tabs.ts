@@ -223,6 +223,56 @@ export async function getTabs(port: Port, { command: _cmd, args }: Command) {
   }
 }
 
+export async function activateTab(port: Port, { args }: Command) {
+  try {
+    if (!args) {
+      log("invalid args, received: ", args)
+      return port.postMessage(Response.end())
+    }
+
+    let tabId: number
+    let windowId: number | undefined
+
+    // Parse args - can be "windowId:tabId" or just "tabId"
+    const ids = args.split(":")
+    if (ids.length === 2) {
+      windowId = Number.parseInt(ids[0])
+      tabId = Number.parseInt(ids[1])
+    } else if (ids.length === 1) {
+      tabId = Number.parseInt(ids[0])
+    } else {
+      log("invalid args format, received: ", args)
+      return port.postMessage(Response.end())
+    }
+
+    // First, make the tab active within its window
+    await browser.tabs.update(tabId, { active: true })
+    log("activated tab: ", tabId)
+
+    // Get the tab to find its windowId if not provided
+    const tab = await browser.tabs.get(tabId)
+    const targetWindowId = windowId ?? tab.windowId
+
+    // Bring the window to the foreground
+    if (targetWindowId !== undefined) {
+      await browser.windows.update(targetWindowId, { focused: true })
+      log("focused window: ", targetWindowId)
+    }
+
+    // Return success response
+    const response = {
+      success: true,
+      tabId: tabId,
+      windowId: targetWindowId,
+    }
+    port.postMessage(Response.data(response))
+    await delay(10)
+    return port.postMessage(Response.end())
+  } catch (e) {
+    return handleError(e, port)
+  }
+}
+
 export async function switchToTab(port: Port, { args }: Command) {
   try {
     if (!args) {

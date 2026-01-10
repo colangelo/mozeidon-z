@@ -8,6 +8,7 @@ export enum CommandName {
   GET_TABS = "get-tabs",
   NEW_TAB = "new-tab",
   SWITCH_TAB = "switch-tab",
+  ACTIVATE_TAB = "activate-tab",
   UPDATE_TAB = "update-tab",
   DUPLICATE_TAB = "duplicate-tab",
   GET_GROUPS = "get-groups",
