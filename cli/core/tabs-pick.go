@@ -164,19 +164,31 @@ func (m pickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // filterTabs filters tabs based on the current query
 func (m *pickerModel) filterTabs() {
 	query := strings.TrimSpace(m.textInput.Value())
+
+	var newFiltered []models.Tab
+	var newMatches []fuzzy.Match
+
 	if query == "" {
-		m.filtered = m.tabs
-		m.matches = nil
-		return
+		newFiltered = m.tabs
+		newMatches = nil
+	} else {
+		// Use fuzzy matching
+		matches := fuzzy.FindFrom(query, tabMatchSource(m.tabs))
+		newFiltered = make([]models.Tab, len(matches))
+		newMatches = make([]fuzzy.Match, len(matches))
+		for i, match := range matches {
+			newFiltered[i] = m.tabs[match.Index]
+			newMatches[i] = match
+		}
 	}
 
-	// Use fuzzy matching
-	matches := fuzzy.FindFrom(query, tabMatchSource(m.tabs))
-	m.filtered = make([]models.Tab, len(matches))
-	m.matches = matches
-	for i, match := range matches {
-		m.filtered[i] = m.tabs[match.Index]
+	// Only reset cursor if the filtered list actually changed
+	if len(newFiltered) != len(m.filtered) {
+		m.cursor = 0
 	}
+
+	m.filtered = newFiltered
+	m.matches = newMatches
 }
 
 // activateTab activates the selected tab
@@ -250,14 +262,31 @@ func (m pickerModel) View() string {
 		}
 
 		// Title (with match highlighting if applicable)
-		title := truncate(tab.Title, 50)
-		if m.matches != nil && i < len(m.matches) {
-			title = highlightMatches(title, m.matches[i].MatchedIndexes, tab.Title)
+		title := tab.Title
+		maxTitleLen := 50
+		truncated := len(title) > maxTitleLen
+		if truncated {
+			title = title[:maxTitleLen-1] + "…"
 		}
-		line.WriteString(titleStyle.Render(title))
 
-		// Padding
-		padding := 55 - len(tab.Title)
+		if m.matches != nil && i < len(m.matches) {
+			// Only use indexes that fall within the visible title
+			var titleIndexes []int
+			for _, idx := range m.matches[i].MatchedIndexes {
+				if idx < len(tab.Title) && idx < maxTitleLen-1 {
+					titleIndexes = append(titleIndexes, idx)
+				}
+			}
+			title = highlightMatches(title, titleIndexes)
+		}
+		line.WriteString(title)
+
+		// Padding - use original title length for calculation
+		displayLen := len(tab.Title)
+		if displayLen > maxTitleLen {
+			displayLen = maxTitleLen
+		}
+		padding := 55 - displayLen
 		if padding < 2 {
 			padding = 2
 		}
@@ -292,7 +321,7 @@ func (m pickerModel) View() string {
 }
 
 // highlightMatches highlights matched characters in a string
-func highlightMatches(s string, indexes []int, original string) string {
+func highlightMatches(s string, indexes []int) string {
 	if len(indexes) == 0 {
 		return s
 	}
@@ -300,9 +329,7 @@ func highlightMatches(s string, indexes []int, original string) string {
 	// Create a set of matched indexes
 	matchSet := make(map[int]bool)
 	for _, idx := range indexes {
-		if idx < len(original) {
-			matchSet[idx] = true
-		}
+		matchSet[idx] = true
 	}
 
 	var result strings.Builder
