@@ -9,3 +9,6 @@ node_modules
 
 # bv (beads viewer) local config and caches
 .bv/
+
+# Beads subdirectories (only root .beads/ is tracked)
+*/.beads/
