@@ -12,3 +12,6 @@ node_modules
 
 # Beads subdirectories (only root .beads/ is tracked)
 */.beads/
+mozeidon-firefox.xpi
+mozeidon-firefox-source.zip
+mozeidon-chrome.zip
