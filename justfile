@@ -116,3 +116,15 @@ git-push:
 # Show status
 git-status:
     git status
+
+# ─────────────────────────────────────────────────────────────
+# Extension Packaging
+# ─────────────────────────────────────────────────────────────
+
+# Package Firefox extension as .xpi for signing
+package-firefox:
+    cd firefox-addon && zip -r ../mozeidon-firefox.xpi manifest.json dist/ icons/
+
+# Package Chrome extension as .zip
+package-chrome:
+    cd chrome-addon && zip -r ../mozeidon-chrome.zip manifest.json dist/ assets/
