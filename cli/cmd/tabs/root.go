@@ -11,6 +11,7 @@ var TabsCmd = &cobra.Command{
 func init() {
 	TabsCmd.AddCommand(GetTabsCmd)
 	TabsCmd.AddCommand(SwitchTabCmd)
+	TabsCmd.AddCommand(ActivateTabCmd)
 	TabsCmd.AddCommand(CloseTabCmd)
 	TabsCmd.AddCommand(NewTabCmd)
 	TabsCmd.AddCommand(UpdateTabCmd)
