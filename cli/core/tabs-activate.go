@@ -2,6 +2,8 @@ package core
 
 import (
 	"os"
+	"os/exec"
+	"runtime"
 
 	"github.com/egovelox/mozeidon/browser/core/models"
 )
@@ -29,5 +31,13 @@ func (a *App) TabsActivate(tabId string) {
 	<-done
 	if returnCode != 0 {
 		os.Exit(1)
+	}
+
+	// On macOS, bring Firefox to foreground via OS-level activation
+	// This is needed because browser.windows.update({focused: true}) alone
+	// cannot steal focus from another app (macOS security feature)
+	if runtime.GOOS == "darwin" {
+		cmd := exec.Command("open", "-a", "firefox")
+		cmd.Run()
 	}
 }
