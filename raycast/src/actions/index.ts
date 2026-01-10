@@ -31,10 +31,12 @@ export function openNewTab(queryText: string | null | undefined): void {
   openFirefox();
 }
 
-export function switchTab(tab: Tab): void {
+export async function switchTab(tab: Tab): Promise<void> {
   // Use activate instead of switch - it handles both tab switching
   // AND bringing the correct Firefox window to foreground
   execSync(`${MOZEIDON} tabs activate ${tab.windowId}:${tab.id}`);
+  // AppleScript is more reliable than `open -a` when called from Raycast
+  await startFirefox();
 }
 
 export function closeTab(tab: Tab): void {
