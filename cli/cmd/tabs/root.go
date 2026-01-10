@@ -12,6 +12,7 @@ func init() {
 	TabsCmd.AddCommand(GetTabsCmd)
 	TabsCmd.AddCommand(SwitchTabCmd)
 	TabsCmd.AddCommand(ActivateTabCmd)
+	TabsCmd.AddCommand(PickCmd)
 	TabsCmd.AddCommand(CloseTabCmd)
 	TabsCmd.AddCommand(NewTabCmd)
 	TabsCmd.AddCommand(UpdateTabCmd)
