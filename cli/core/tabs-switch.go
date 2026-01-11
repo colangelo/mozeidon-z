@@ -33,7 +33,8 @@ func (a *App) TabsSwitch(tabId string, shouldOpenBrowser bool) {
 	}
 
 	if shouldOpenBrowser {
-		cmd := exec.Command("open", "-a", "firefox")
+		// AppleScript's "activate" is more reliable than `open -a` for switching Spaces
+		cmd := exec.Command("osascript", "-e", `tell application "Firefox" to activate`)
 		cmd.Run()
 	}
 }
