@@ -44,6 +44,7 @@ type pickerModel struct {
 	cursor        int
 	textInput     textinput.Model
 	loopMode      bool
+	demoMode      bool
 	width         int
 	height        int
 	err           error
@@ -70,6 +71,10 @@ func (m pickerModel) Init() tea.Cmd {
 
 // fetchTabs fetches tabs from the browser
 func (m pickerModel) fetchTabs() tea.Msg {
+	if m.demoMode {
+		return tabsLoadedMsg{tabs: generateDemoTabs()}
+	}
+
 	tabs := []models.Tab{}
 	for result := range m.app.TabsGet(false, true) {
 		tabs = append(tabs, result.Items...)
@@ -79,6 +84,24 @@ func (m pickerModel) fetchTabs() tea.Msg {
 		return tabs[i].LastAccessed > tabs[j].LastAccessed
 	})
 	return tabsLoadedMsg{tabs: tabs}
+}
+
+// generateDemoTabs creates fake tabs for demo/testing
+func generateDemoTabs() []models.Tab {
+	return []models.Tab{
+		{Id: 1, WindowId: 1, Title: "GitHub - charmbracelet/bubbletea", Domain: "github.com", Active: true, LastAccessed: 1000},
+		{Id: 2, WindowId: 1, Title: "Google Search - golang tui", Domain: "google.com", Active: false, LastAccessed: 999},
+		{Id: 3, WindowId: 1, Title: "Stack Overflow - How to build CLI apps", Domain: "stackoverflow.com", Active: false, LastAccessed: 998},
+		{Id: 4, WindowId: 1, Title: "Hacker News", Domain: "news.ycombinator.com", Active: false, LastAccessed: 997},
+		{Id: 5, WindowId: 1, Title: "Reddit - r/golang", Domain: "reddit.com", Active: false, LastAccessed: 996},
+		{Id: 6, WindowId: 2, Title: "YouTube - Charm CLI Tools Tutorial", Domain: "youtube.com", Active: false, LastAccessed: 995},
+		{Id: 7, WindowId: 2, Title: "Twitter / X - @chaborel", Domain: "x.com", Active: false, LastAccessed: 994},
+		{Id: 8, WindowId: 2, Title: "Gmail - Inbox", Domain: "mail.google.com", Active: false, LastAccessed: 993},
+		{Id: 9, WindowId: 2, Title: "Notion - Project Notes", Domain: "notion.so", Active: false, LastAccessed: 992},
+		{Id: 10, WindowId: 2, Title: "Figma - UI Design", Domain: "figma.com", Active: false, LastAccessed: 991},
+		{Id: 11, WindowId: 1, Title: "MDN Web Docs - JavaScript", Domain: "developer.mozilla.org", Active: false, LastAccessed: 990},
+		{Id: 12, WindowId: 1, Title: "Go Documentation", Domain: "go.dev", Active: false, LastAccessed: 989},
+	}
 }
 
 type tabsLoadedMsg struct {
@@ -366,7 +389,7 @@ func max(a, b int) int {
 }
 
 // TabsPick launches the interactive tab picker
-func (a *App) TabsPick(loopMode bool) error {
+func (a *App) TabsPick(loopMode bool, demoMode bool) error {
 	ti := textinput.New()
 	ti.Placeholder = "Type to search tabs..."
 	ti.Focus()
@@ -377,6 +400,7 @@ func (a *App) TabsPick(loopMode bool) error {
 		app:       a,
 		textInput: ti,
 		loopMode:  loopMode,
+		demoMode:  demoMode,
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
