@@ -7,6 +7,7 @@ import (
 )
 
 var loopMode bool
+var demoMode bool
 
 var PickCmd = &cobra.Command{
 	Use:     "pick",
@@ -45,11 +46,11 @@ var PickCmd = &cobra.Command{
 	Args: cobra.NoArgs,
 	Run: func(_ *cobra.Command, args []string) {
 		app, err := core.NewApp()
-		if err != nil {
+		if err != nil && !demoMode {
 			core.PrintError(err.Error())
 			return
 		}
-		if err := app.TabsPick(loopMode); err != nil {
+		if err := app.TabsPick(loopMode, demoMode); err != nil {
 			core.PrintError(err.Error())
 		}
 	},
@@ -58,4 +59,6 @@ var PickCmd = &cobra.Command{
 func init() {
 	PickCmd.Flags().
 		BoolVarP(&loopMode, "loop", "l", false, "Stay open after activating a tab (press Esc to exit)")
+	PickCmd.Flags().
+		BoolVarP(&demoMode, "demo", "d", false, "Use demo data (for testing without Firefox)")
 }
