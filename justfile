@@ -121,9 +121,12 @@ git-status:
 # Extension Packaging
 # ─────────────────────────────────────────────────────────────
 
-# Package Firefox extension as .xpi for signing
+# Package Firefox extension for AMO upload (.xpi + source.zip)
 package-firefox:
-    cd firefox-addon && zip -r ../mozeidon-firefox.xpi manifest.json dist/ icons/
+    cd firefox-addon && rm -f mozeidon-firefox.xpi mozeidon-source.zip && \
+    zip -r mozeidon-firefox.xpi manifest.json dist/ icons/ -x "*.DS_Store" && \
+    zip -r mozeidon-source.zip src/ package.json package-lock.json webpack.config.js tsconfig.json manifest.json icons/ -x "*.DS_Store" && \
+    echo "Created:" && ls -la mozeidon-firefox.xpi mozeidon-source.zip
 
 # Package Chrome extension as .zip
 package-chrome:
