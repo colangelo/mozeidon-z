@@ -109,6 +109,63 @@ mozeidon tabs get -t '{{range .Items}}{{.Title}}: {{.Url}}{{"\n"}}{{end}}'
 
 ---
 
+### `tabs activate`
+
+Activate a tab and bring its Firefox window to the foreground.
+
+**Usage:**
+```bash
+mozeidon tabs activate <windowId>:<tabId>
+```
+
+**Arguments:**
+- `<windowId>:<tabId>` - Window and tab ID in the format `{windowId}:{tabId}`
+
+**Behavior (macOS):**
+- Activates the specified tab within Firefox
+- Brings the specific Firefox window to the foreground
+- Automatically switches macOS Spaces if the window is on a different Space
+
+**Examples:**
+```bash
+# Activate tab 56 in window 69
+mozeidon tabs activate 69:56
+```
+
+**Note:** On macOS, this uses AppleScript to reliably bring the correct window to front, even when you have many Firefox windows across multiple Spaces.
+
+---
+
+### `tabs pick`
+
+Interactive tab picker with fuzzy search.
+
+**Usage:**
+```bash
+mozeidon tabs pick [flags]
+```
+
+**Flags:**
+- `-l, --loop` - Stay open after activating a tab (press Esc to exit)
+- `-d, --demo` - Use demo data (for testing without Firefox)
+
+**Keyboard Controls:**
+- `↑/↓` or `j/k` - Navigate tabs
+- `Enter` - Activate selected tab and bring to foreground
+- `R` - Refresh tab list
+- `Esc` or `Ctrl+C` - Exit
+
+**Examples:**
+```bash
+# Open interactive tab picker
+mozeidon tabs pick
+
+# Stay open after selecting (loop mode)
+mozeidon tabs pick --loop
+```
+
+---
+
 ### `tabs switch`
 
 Switch to a given tab by ID.
@@ -122,9 +179,9 @@ mozeidon tabs switch <windowId>:<tabId> [flags]
 - `<windowId>:<tabId>` - Window and tab ID in the format `{windowId}:{tabId}`
 
 **Flags:**
-- `-o, --open` - Open `firefox` browser window ( only firefox, and only for MacOS ).  
-    Same as `mozeidon tabs switch <windowId>:<tabId> && open -a firefox`.  
-    Meaning that you can adapt it yourself for e.g `chrome` :  
+- `-o, --open` - Open `firefox` browser window ( only firefox, and only for MacOS ).
+    Same as `mozeidon tabs switch <windowId>:<tabId> && open -a firefox`.
+    Meaning that you can adapt it yourself for e.g `chrome` :
     `mozeidon tabs switch <windowId>:<tabId> && open -a 'Google Chrome'`
 
 **Examples:**
