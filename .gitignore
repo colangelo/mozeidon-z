@@ -15,3 +15,7 @@ node_modules
 mozeidon-firefox.xpi
 mozeidon-firefox-source.zip
 mozeidon-chrome.zip
+
+# Extension packages
+*.xpi
+mozeidon-source.zip
