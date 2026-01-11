@@ -1,4 +1,4 @@
-# Ignore node modules
+# Node modules
 node_modules
 
 # macOS
