@@ -248,15 +248,15 @@ export async function activateTab(port: Port, { args }: Command) {
       .update(tabId, { active: true })
       .then(() => browser.tabs.get(tabId))
       .then((tab) => {
-        log("activated tab:", tabId, "focusing window:", tab.windowId)
-        return browser.windows.update(tab.windowId!, { focused: true })
+        log("activated tab:", tabId, "focusing window:", tab.windowId, "title:", tab.title)
+        return browser.windows.update(tab.windowId!, { focused: true }).then(win => ({ win, tabTitle: tab.title || "" }))
       })
-      .then((win) => {
-        log("window focused:", win.id)
+      .then(({ win, tabTitle }) => {
+        log("window focused:", win.id, "returning title:", tabTitle)
         port.postMessage(
-          Response.data({ success: true, tabId, windowId: win.id })
+          Response.data({ success: true, tabId, windowId: win.id, title: tabTitle })
         )
-        return delay(10)
+        return delay(100) // Increased delay to ensure window focus propagates
       })
       .then(() => port.postMessage(Response.end()))
       .catch((e) => handleError(e, port))
@@ -291,7 +291,10 @@ export async function switchToTab(port: Port, { args }: Command) {
     for (let tab of tabItems) {
       if (tab.id === tabId) {
         log("found tab to switch to", tab)
-        browser.tabs.update(tab.id!, { active: true })
+        await browser.tabs.update(tab.id!, { active: true })
+        // Focus the window to bring it to front (including switching Spaces on macOS)
+        await browser.windows.update(windowId, { focused: true })
+        log("window focused:", windowId)
         break
       }
     }
