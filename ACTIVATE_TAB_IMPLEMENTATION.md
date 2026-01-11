@@ -236,6 +236,62 @@ Without `windows.update()`, if Firefox is behind other applications, the tab wou
      │ Tab is now in foreground                  │                    │
 ```
 
+## macOS-Specific Implementation
+
+On macOS, bringing the correct Firefox window to the foreground requires additional work beyond the WebExtensions API. The `browser.windows.update(windowId, { focused: true })` call focuses the window within Firefox, but doesn't reliably bring it to the front over other applications or switch macOS Spaces.
+
+### The AppleScript Solution
+
+The CLI uses AppleScript to bring the specific window to front:
+
+```applescript
+tell application "Firefox"
+    activate
+    delay 0.1
+    set theWindows to every window
+    repeat with w in theWindows
+        try
+            set wName to name of w
+            if wName contains "<tab title>" then
+                try
+                    set index of w to 1
+                    return
+                end try
+            end if
+        end try
+    end repeat
+end tell
+```
+
+### Key Implementation Details
+
+1. **Order matters:** Must `activate` Firefox first, then `set index of w to 1`. The reverse order doesn't work reliably.
+
+2. **Delay required:** A 0.1s delay after `activate` ensures the window list is ready.
+
+3. **Nested try blocks:** Some Firefox windows have invalid IDs (id -1). The inner try block catches `set index` errors and continues to the next matching window.
+
+4. **Title matching:** The extension returns the tab title, which becomes the window title. The CLI uses `contains` to match window names.
+
+5. **Title escaping:** Special characters in tab titles are escaped for AppleScript strings.
+
+### Flow
+
+```
+Extension                          CLI (macOS)
+    │                                  │
+    │ browser.tabs.update(active)      │
+    │ browser.windows.update(focused)  │
+    │ ─────────────────────────────────>│
+    │ Response: {tabId, windowId,      │
+    │            title: "Tab Title"}   │
+    │                                  │
+    │                                  │ Sleep 100ms
+    │                                  │ osascript: activate + set index
+    │                                  │
+    │                        Window comes to front
+```
+
 ## Testing
 
 ```bash
@@ -243,7 +299,10 @@ Without `windows.update()`, if Firefox is behind other applications, the tab wou
 mozeidon tabs get
 
 # Activate a specific tab (brings Firefox to foreground)
-mozeidon tabs activate 123
+mozeidon tabs activate 69:56
+
+# Interactive picker with fuzzy search
+mozeidon tabs pick
 ```
 
 ## Repository Locations
