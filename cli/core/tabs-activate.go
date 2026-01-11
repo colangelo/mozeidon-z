@@ -60,19 +60,25 @@ func (a *App) TabsActivate(tabId string) {
 		time.Sleep(100 * time.Millisecond)
 
 		if windowTitle != "" {
-			// Use AppleScript to find window by title, bring it to front, then activate Firefox
+			// Use AppleScript to find window by title and bring it to front
+			// Must activate first, then set index - this order is important
+			// Nested try blocks handle windows with invalid IDs (id -1)
 			script := fmt.Sprintf(`
 				tell application "Firefox"
+					activate
+					delay 0.1
 					set theWindows to every window
 					repeat with w in theWindows
 						try
-							if name of w contains %q then
-								set index of w to 1
-								exit repeat
+							set wName to name of w
+							if wName contains %q then
+								try
+									set index of w to 1
+									return
+								end try
 							end if
 						end try
 					end repeat
-					activate
 				end tell
 			`, escapeAppleScriptString(windowTitle))
 			cmd := exec.Command("osascript", "-e", script)
