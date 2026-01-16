@@ -1,35 +1,55 @@
-# 🔱 Mozeidon 
+# 🔱 Mozeidon Z
 
-TLDR;
+> **This is a fork of [egovelox/mozeidon](https://github.com/egovelox/mozeidon)** with additional features for macOS users.
+
+## What's New in This Fork
+
+- **`tabs activate`** - Activate a tab AND bring its Firefox window to the foreground, even across macOS Spaces
+- **`tabs pick`** - Interactive TUI tab picker using [bubbletea](https://github.com/charmbracelet/bubbletea)
+- **AppleScript integration** - Proper window activation on macOS that works with multiple windows/Spaces
+- **`just` recipes** - Simplified setup and development workflow (`just setup-all`, `just package-firefox`, etc.)
+
+## Firefox Extension
+
+Install the **Mozeidon Z** extension from AMO:
+
+**[https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/](https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/)**
+
+---
+
+## TLDR
+
 - Handle your tabs, groups, bookmarks and history from outside of your web-browser.
-- [🤓 Install of the mozeidon cli](https://github.com/egovelox/mozeidon?tab=readme-ov-file#installation)
+- [🤓 Installation guide](#installation)
 - [📖 CLI Reference Documentation](CLI_REFERENCE.md)
-- [✨ Desktop applications based on mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#desktop-applications-based-on-mozeidon-cli)
+- [✨ Desktop applications](#desktop-applications-based-on-mozeidon-cli)
 
 ## Intro
-Mozeidon is essentially a CLI written in [Go](https://go.dev/) to handle [Mozilla Firefox](https://www.mozilla.org/firefox/) OR [Google Chrome](https://www.google.com/chrome) tabs, history, and bookmarks. 
 
-Here you'll find :
-- a guide to complete the [installation](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#installation) of the mozeidon components (see [architecture](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#architecture)).
-- [advanced examples](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#examples) of the CLI usage (including integration with `fzf` and `fzf-tmux`) 
-- [a Raycast extension](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#raycast-extension) built around Mozeidon CLI (for MacOS only)
-- [a MacOS desktop app](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#macos-swift-app-agent) built around Mozeidon CLI (for MacOS only)
+Mozeidon is essentially a CLI written in [Go](https://go.dev/) to handle [Mozilla Firefox](https://www.mozilla.org/firefox/) tabs, history, and bookmarks.
 
-All the code is available here as open-source. You can be sure that :
-- your browsing data (tabs, bookmarks, etc) will remain private and safe: mozeidon will never share anything outside of your system.
-- at any time, stopping or removing the mozeidon firefox (or chrome) addon extension will stop or remove all related processes on your machine.
+Here you'll find:
+- A guide to complete the [installation](#installation) of the mozeidon components (see [architecture](#architecture))
+- [Advanced examples](#examples) of the CLI usage (including integration with `fzf` and `fzf-tmux`)
+- [A Raycast extension](#raycast-extension) built around Mozeidon CLI (for macOS only)
 
-Using the ``mozeidon`` CLI (see [CLI reference](CLI_REFERENCE.md)), you can : 
-- list all currently opened tabs
-- list recently-closed tabs
-- list, delete current history
-- list current bookmarks
-- switch to a currently opened tab
-- open a new tab (empty tab or with target url)
-- close a currently opened tab
-- pin/unpin a currently opened tab
-- group/ungroup a currently opened tab
-- create, delete, update a bookmark
+All the code is available here as open-source. You can be sure that:
+- Your browsing data (tabs, bookmarks, etc) will remain private and safe: mozeidon will never share anything outside of your system.
+- At any time, stopping or removing the mozeidon firefox addon extension will stop or remove all related processes on your machine.
+
+Using the `mozeidon` CLI (see [CLI reference](CLI_REFERENCE.md)), you can:
+- List all currently opened tabs
+- List recently-closed tabs
+- List, delete current history
+- List current bookmarks
+- **Activate a tab and bring its window to foreground** (new in this fork)
+- **Pick a tab interactively with TUI** (new in this fork)
+- Switch to a currently opened tab
+- Open a new tab (empty tab or with target url)
+- Close a currently opened tab
+- Pin/unpin a currently opened tab
+- Group/ungroup a currently opened tab
+- Create, delete, update a bookmark
 
 | <img width="1512" height="910" alt="mozeidon-cli" src="https://github.com/user-attachments/assets/32b49616-5129-479c-aea6-9490395464c9" /> |
 |:--:|
@@ -55,72 +75,86 @@ Using the ``mozeidon`` CLI (see [CLI reference](CLI_REFERENCE.md)), you can :
 <img width="788" alt="mozeidon-architecture" src="https://github.com/egovelox/mozeidon/assets/56078155/15192276-e85f-4de0-956d-6eba0517303b">
 <br/><br/>
 
-Mozeidon is built on ipc and native-messaging protocols, using the following components :
+Mozeidon is built on IPC and native-messaging protocols, using the following components:
 
-- the [Mozeidon firefox or chrome add-on](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-firefox-addon), a JS script running in the Mozilla (or Chrome) browser, receives commands and sends back data (i.e tabs, bookmarks, etc) by leveraging various browser APIs.
+- **[Mozeidon Z Firefox Extension](#mozeidon-z-firefox-extension)** - A TypeScript WebExtension running in Firefox that receives commands and sends back data (tabs, bookmarks, etc.) by leveraging browser APIs.
 
-- the [Mozeidon native-app](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-native-app), a Go program, interacts with the Mozeidon firefox-addon. It sends commands to, and receive data from the browser addon - via [native-messaging](https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/Native_messaging) protocol.
+- **[Mozeidon native-app](#mozeidon-native-app)** - A Go program that acts as an IPC broker. It communicates with the browser extension via [native-messaging](https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/Native_messaging) protocol.
 
-- the [Mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli), another Go program, interacts with the Mozeidon native-app. It sends commands to and receive data from the native-app - via ipc protocol.
+- **[Mozeidon CLI](#mozeidon-cli)** - A Go CLI that communicates with the native-app via IPC protocol. This is what you use from the terminal.
 
 
-## Installation 
+## Installation
 
-You need to install at least 3 components :
-- the [Mozeidon firefox add-on](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-firefox-addon) or the [Mozeidon chrome add-on](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-chrome-addon)
-- the [Mozeidon native-app](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-native-app)
-- the [Mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli)
+You need to install 3 components:
 
-## Mozeidon firefox-addon
+1. **[Mozeidon Z Firefox Extension](#mozeidon-z-firefox-extension)** - Install from AMO
+2. **[Mozeidon native-app](#mozeidon-native-app)** - Install via Homebrew
+3. **[Mozeidon CLI](#mozeidon-cli)** - Install via Homebrew or build from source
 
-The mozeidon addon for Mozilla Firefox can be found here :
+### Quick Start (macOS with Homebrew)
 
-[https://addons.mozilla.org/en-US/firefox/addon/mozeidon](https://addons.mozilla.org/en-US/firefox/addon/mozeidon)
+```bash
+# Install native app and CLI
+brew tap egovelox/homebrew-mozeidon
+brew install egovelox/mozeidon/mozeidon-native-app
+brew install egovelox/mozeidon/mozeidon
 
-Latest version : `3.0` ( previous versions may not work with our latest CLI versions )
+# Configure native messaging (or use: just setup-native-messaging)
+mkdir -p ~/Library/Application\ Support/Mozilla/NativeMessagingHosts
+cat > ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon.json << 'EOF'
+{
+  "name": "mozeidon",
+  "description": "Mozeidon native messaging host",
+  "path": "/opt/homebrew/bin/mozeidon-native-app",
+  "type": "stdio",
+  "allowed_extensions": ["mozeidon-addon@egovelox.com", "mozeidon-z@a-layer.io"]
+}
+EOF
 
-## Mozeidon chrome-addon
+# Restart Firefox, then test
+mozeidon tabs get
+```
 
-The mozeidon addon for Google Chrome can be found here :
+## Mozeidon Z Firefox Extension
 
-[https://chromewebstore.google.com/detail/mozeidon/lipjcjopdojfmfjmnponpjkkccbjoipe](https://chromewebstore.google.com/detail/mozeidon/lipjcjopdojfmfjmnponpjkkccbjoipe)
+The **Mozeidon Z** addon for Mozilla Firefox (this fork) can be found here:
 
-New version coming soon : `3.0` ( previous versions may not work with our latest CLI versions )
+**[https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/](https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/)**
+
+Latest version: `3.2.2`
+
+> Note: The original [mozeidon extension](https://addons.mozilla.org/en-US/firefox/addon/mozeidon) will also work, but you'll miss the improvements in this fork.
 
 ## Mozeidon native-app
 
-The [mozeidon native-app](https://github.com/egovelox/mozeidon-native-app), a very simple ipc server written in ``go``, will allow the mozeidon add-on to receive commands from and send responses to the mozeidon CLI ([see below](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli)).
+The [mozeidon native-app](https://github.com/egovelox/mozeidon-native-app) is an IPC broker that connects the CLI to the browser extension.
 
-On MacOS or Linux, you can install it using ``homebrew`` :
+**Install via Homebrew (macOS/Linux):**
 ```bash
-brew tap egovelox/homebrew-mozeidon ;
-
-brew install egovelox/mozeidon/mozeidon-native-app ;
+brew tap egovelox/homebrew-mozeidon
+brew install egovelox/mozeidon/mozeidon-native-app
 ```
 
-Otherwise, you may download the binary from the [release page](https://github.com/egovelox/mozeidon-native-app/releases).
+Or download from the [release page](https://github.com/egovelox/mozeidon-native-app/releases), or build from source.
 
-If no release matches your platform, you can build the binary yourself:
+### Configure Native Messaging (Required)
+
+The native-app must be registered with Firefox.
+
+**Option 1: Use just (recommended)**
 ```bash
-git clone https://github.com/egovelox/mozeidon-native-app.git ;
-
-cd mozeidon-native-app && go build
+just setup-native-messaging
 ```
-<br/>
-As a firefox native-app, it has to be referenced into your Firefox or Chrome configuration.
 
-### Referencing the native-app into your Firefox configuration
+**Option 2: Manual setup**
 
-On ``MacOS``, first locate the ``~/Library/Application Support/Mozilla/NativeMessagingHosts`` directory (or create it if missing).
-
-Then create a ``mozeidon.json`` file, and copy into it the following ``json``.
-
-Note: depending on your installation, you may need to replace the value in ``"path"`` with the absolute path of the mozeidon-native-app.
+Create `~/Library/Application Support/Mozilla/NativeMessagingHosts/mozeidon.json`:
 
 ```json
 {
   "name": "mozeidon",
-  "description": "Native messaging add-on to interact with your browser",
+  "description": "Mozeidon native messaging host",
   "path": "/opt/homebrew/bin/mozeidon-native-app",
   "type": "stdio",
   "allowed_extensions": [
@@ -130,60 +164,40 @@ Note: depending on your installation, you may need to replace the value in ``"pa
 }
 ```
 
-Now the Mozeidon firefox-addon will be able to interact with the Mozeidon native-app.
+**Important:** Restart Firefox after creating this file.
 
-**Quick setup with just:** If you have `just` installed, you can run `just setup-native-messaging` to automatically create this file.
-
-Note : 
-For other OS than ``MacOS``, please check the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#manifest_location) to find the correct location of the Firefox ``NativeMessagingHosts`` directory.
-
-As a last step, you need to install the [Mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli).
-
-### Referencing the native-app into your Chrome configuration
-
-On ``MacOS``, first locate the ``~/Library/Application Support/Google/Chrome/NativeMessagingHosts`` directory (or create it if missing).
-
-Then create a ``mozeidon.json`` file, and copy into it the following ``json``.
-
-Note: depending on your installation, you may need to replace the value in ``"path"`` with the absolute path of the mozeidon-native-app.
-
-```json
-{
-  "name": "mozeidon",
-  "description": "Native messaging add-on to interact with your browser",
-  "path": "/opt/homebrew/bin/mozeidon-native-app",
-  "type": "stdio",
-  "allowed_origins": ["chrome-extension://lipjcjopdojfmfjmnponpjkkccbjoipe/"]
-}
-```
-
-Now the Mozeidon chrome-addon will be able to interact with the Mozeidon native-app.
-
-Note : 
-For other OS than ``MacOS``, please check the [Chrome documentation](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging#native-messaging-host-location) to find the correct location of the Chrome ``NativeMessagingHosts`` directory.
-
-As a last step, you need to install the [Mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli).
+For other OS, see the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#manifest_location) for the correct `NativeMessagingHosts` location.
 
 ## Mozeidon CLI
 
-The Mozeidon CLI is a lightweight CLI written in ``go``. 
+The Mozeidon CLI is a lightweight CLI written in Go.
 
 📖 **[Complete CLI Reference Documentation](CLI_REFERENCE.md)**
 
-On MacOS or Linux, you can install it using ``homebrew`` :
-```bash
-brew tap egovelox/homebrew-mozeidon ;
+### New Commands in This Fork
 
-brew install egovelox/mozeidon/mozeidon ;
+```bash
+# Activate a tab AND bring its window to foreground (works across macOS Spaces)
+mozeidon tabs activate 3289:596
+
+# Interactive TUI tab picker
+mozeidon tabs pick
 ```
 
-Otherwise, you may download the binary from the [release page](https://github.com/egovelox/mozeidon/releases).
+### Install via Homebrew
 
-If no release matches your platform, you can build the binary yourself:
 ```bash
-git clone https://github.com/egovelox/mozeidon.git ;
+brew tap egovelox/homebrew-mozeidon
+brew install egovelox/mozeidon/mozeidon
+```
 
-cd mozeidon/cli && go build
+Or download from the [release page](https://github.com/egovelox/mozeidon/releases).
+
+### Build from Source (This Fork)
+
+```bash
+git clone https://github.com/anthropics/mozeidon-z.git  # TODO: update with actual fork URL
+cd mozeidon-z/cli && go build
 ```
 
 ## Examples 
