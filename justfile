@@ -131,3 +131,25 @@ package-firefox:
 # Package Chrome extension as .zip
 package-chrome:
     cd chrome-addon && zip -r ../mozeidon-chrome.zip manifest.json dist/ assets/
+
+# ─────────────────────────────────────────────────────────────
+# Setup Commands
+# ─────────────────────────────────────────────────────────────
+
+# Install Firefox native messaging manifest (required for CLI <-> extension communication)
+setup-native-messaging:
+    mkdir -p ~/Library/Application\ Support/Mozilla/NativeMessagingHosts
+    @echo '{"name":"mozeidon_native_app","description":"Mozeidon native messaging host","path":"/opt/homebrew/bin/mozeidon-native-app","type":"stdio","allowed_extensions":["mozeidon-z@a-layer.io","mozeidon@anthropic.github.io","mozeidon-dev@ac.local"]}' > ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon_native_app.json
+    @echo "Created native messaging manifest. Restart Firefox to apply."
+    @cat ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon_native_app.json | jq .
+
+# Check if native messaging is configured
+check-native-messaging:
+    @cat ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon_native_app.json 2>/dev/null && echo "\n✓ Native messaging configured" || echo "✗ Native messaging not configured. Run: just setup-native-messaging"
+
+# Full setup: build everything and configure native messaging
+setup-all: build-all build-raycast setup-native-messaging
+    @echo "\nSetup complete! Next steps:"
+    @echo "1. Restart Firefox"
+    @echo "2. Install Mozeidon extension in Firefox (about:debugging or AMO)"
+    @echo "3. Import Raycast extension from ./raycast/"
