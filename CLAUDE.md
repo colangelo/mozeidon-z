@@ -97,6 +97,38 @@ cd raycast && npm run dev    # Development mode
 cd raycast && npm run lint   # Lint check
 ```
 
+## Just Recipes
+
+The project uses `just` (justfile) for common development tasks. Run `just --list` to see all available commands.
+
+```bash
+# Build
+just build-all              # Build CLI + Firefox + Chrome addons
+just build-cli              # Build CLI only
+just build-firefox          # Build Firefox addon only
+just build-raycast          # Build Raycast extension
+
+# Setup (required for first-time setup)
+just setup-native-messaging # Install Firefox native messaging manifest
+just check-native-messaging # Verify native messaging is configured
+just setup-all              # Full setup: build everything + configure native messaging
+
+# CLI testing
+just tabs-get               # Get open tabs
+just tabs-closed            # Get recently closed tabs
+just tabs-activate ID       # Activate a tab (e.g., just tabs-activate 3289:596)
+just test-connection        # Test CLI can connect to Firefox
+
+# Extension packaging (for AMO/Chrome Web Store upload)
+just package-firefox        # Create mozeidon-firefox.xpi + mozeidon-source.zip
+just package-chrome         # Create mozeidon-chrome.zip
+
+# Development
+just raycast-dev            # Run Raycast in dev mode
+just format-firefox         # Format Firefox addon TypeScript
+just firefox-debug          # Open Firefox debugging page (about:debugging)
+```
+
 ## Key File Locations
 
 **CLI (Go 1.21, Cobra)**

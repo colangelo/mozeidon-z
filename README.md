@@ -124,12 +124,15 @@ Note: depending on your installation, you may need to replace the value in ``"pa
   "path": "/opt/homebrew/bin/mozeidon-native-app",
   "type": "stdio",
   "allowed_extensions": [
-    "mozeidon-addon@egovelox.com"
+    "mozeidon-addon@egovelox.com",
+    "mozeidon-z@a-layer.io"
   ]
 }
 ```
 
 Now the Mozeidon firefox-addon will be able to interact with the Mozeidon native-app.
+
+**Quick setup with just:** If you have `just` installed, you can run `just setup-native-messaging` to automatically create this file.
 
 Note : 
 For other OS than ``MacOS``, please check the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#manifest_location) to find the correct location of the Firefox ``NativeMessagingHosts`` directory.
@@ -336,7 +339,26 @@ In fact, you rarely need to modify this component, it's just a message broker (s
 
 First clone this repository.
 
-Then, build the cli and the extensions locally :
+### Quick setup with just
+
+If you have [just](https://github.com/casey/just) installed, you can set up everything in one command:
+
+```bash
+just setup-all
+```
+
+This will build the CLI, extensions, Raycast extension, and configure native messaging.
+
+Other useful just commands:
+- `just --list` - Show all available commands
+- `just setup-native-messaging` - Configure Firefox native messaging
+- `just check-native-messaging` - Verify native messaging is configured
+- `just package-firefox` - Package extension for AMO upload
+- `just tabs-get` - Test getting open tabs
+
+### Manual setup
+
+Build the cli and the extensions locally :
 
 ```bash
 make all
