@@ -1,4 +1,4 @@
-# 🔱 Mozeidon Z
+# <img src="firefox-addon/icons/mazinger-Z-128.png" width="32" height="32" /> Mozeidon Z
 
 > **This is a fork of [egovelox/mozeidon](https://github.com/egovelox/mozeidon)** with additional features for macOS users.
 
