@@ -4,7 +4,8 @@
   "name": "Mozeidon Z",
   "version": "3.2.1",
   "icons": {
-    "48": "icons/trident.svg"
+    "48": "icons/mazinger-Z-128.png",
+    "128": "icons/mazinger-Z-128.png"
   },
   "browser_specific_settings": {
     "gecko": {
@@ -19,7 +20,7 @@
     "scripts": ["dist/background.js"]
   },
   "browser_action": {
-    "default_icon": "icons/trident.svg"
+    "default_icon": "icons/mazinger-Z-128.png"
   },
   "permissions": ["nativeMessaging", "tabs", "sessions", "bookmarks", "history", "tabGroups"]
 }
