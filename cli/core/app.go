@@ -19,7 +19,11 @@ func newApp(profile *profiles.Profile) (*App, error) {
 func NewAppWithProfile(profileId string) (*App, error) {
 	profile, err := profiles.GetProfileById(profileId)
 	if err != nil {
-		return nil, err
+		// Fallback to legacy IPC name when no profiles are registered
+		// (e.g. when using a pre-v4 native app)
+		profile = &profiles.Profile{
+			IpcName: "mozeidon_native_app",
+		}
 	}
 
 	return newApp(profile)
