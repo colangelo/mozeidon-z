@@ -17,6 +17,10 @@ build-all:
 build-cli:
     make build-cli
 
+# Build and install CLI to ~/.local/bin
+install-cli:
+    cd cli && go build -o ~/.local/bin/mozeidon .
+
 # Build Firefox addon only
 build-firefox:
     make build-firefox-addon
