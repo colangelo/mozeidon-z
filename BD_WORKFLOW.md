@@ -12,7 +12,7 @@ This document describes how to use **bd** (beads issue tracker), **mcp_agent_mai
 
 ## Architecture
 
-```
+```txt
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         Human Operator                               │
 │                              ↓                                       │
@@ -75,7 +75,7 @@ bd export -o .beads/issues.jsonl
 
 Each Claude Code session should register as a unique agent. Use the `macro_start_session` MCP tool:
 
-```
+```txt
 macro_start_session(
   human_key="/absolute/path/to/project",
   program="claude-code",
@@ -85,11 +85,13 @@ macro_start_session(
 ```
 
 This will:
+
 - Ensure the project exists in agent-mail
 - Register/update the agent identity (auto-generates name like "BlueLake")
 - Fetch recent inbox messages
 
 **Agent Naming Rules:**
+
 - Names are auto-generated adjective+noun combinations: `BlueLake`, `GreenCastle`, `RedStone`
 - Names are NOT descriptive: avoid `BackendWorker`, `UIRefactorer`
 - Each session gets a unique name to track who did what
@@ -123,7 +125,7 @@ This prevents other agents from working on the same task.
 
 Before editing, reserve the files you'll touch to prevent conflicts:
 
-```
+```txt
 file_reservation_paths(
   project_key="/absolute/path/to/project",
   agent_name="BlueLake",
@@ -135,6 +137,7 @@ file_reservation_paths(
 ```
 
 **File Reservation Behavior:**
+
 - Other agents will see conflicts if they try to reserve the same files
 - TTL auto-expires reservations if agent crashes
 - Use `renew_file_reservations` for long-running work
@@ -158,7 +161,7 @@ bd export -o .beads/issues.jsonl
 
 Release file reservations:
 
-```
+```txt
 release_file_reservations(
   project_key="/absolute/path/to/project",
   agent_name="BlueLake"
@@ -169,7 +172,7 @@ release_file_reservations(
 
 If another agent is waiting on your work:
 
-```
+```txt
 send_message(
   project_key="/absolute/path/to/project",
   sender_name="BlueLake",
@@ -183,7 +186,7 @@ send_message(
 
 Periodically check for messages from other agents:
 
-```
+```txt
 fetch_inbox(
   project_key="/absolute/path/to/project",
   agent_name="BlueLake",
@@ -287,7 +290,7 @@ bd close mozeidon-r03 mozeidon-8e3 --reason "Both done"
 ### Messaging
 
 | Tool | Purpose |
-|------|---------|
+| ------ | --------- |
 | `send_message` | Send new message to recipients |
 | `reply_message` | Reply within existing thread |
 | `fetch_inbox` | Poll for new messages |
@@ -356,7 +359,7 @@ bv --agent-brief ./brief/
 
 ### Terminal Layout
 
-```
+```txt
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Terminal 1: bv Dashboard                                            │
 │ ─────────────────────────────────────────────────────────────────── │
@@ -376,7 +379,7 @@ bv --agent-brief ./brief/
 
 ### Session 1 (BlueLake) - Firefox Addon Work
 
-```
+```txt
 Human: Start a session and work on the Firefox addon tasks
 
 Claude: [Calls macro_start_session, gets agent name "BlueLake"]
@@ -391,7 +394,7 @@ Claude: [Calls macro_start_session, gets agent name "BlueLake"]
 
 ### Session 2 (GreenCastle) - CLI Work
 
-```
+```txt
 Human: Start a session and work on the CLI tasks
 
 Claude: [Calls macro_start_session, gets agent name "GreenCastle"]
@@ -411,7 +414,7 @@ Claude: [Calls macro_start_session, gets agent name "GreenCastle"]
 
 When an agent tries to reserve already-reserved files:
 
-```
+```txt
 file_reservation_paths response:
 {
   "granted": [],
@@ -425,6 +428,7 @@ file_reservation_paths response:
 ```
 
 **Resolution options:**
+
 1. Wait for the holder to finish
 2. Message the holder to coordinate
 3. Work on a different task
@@ -433,6 +437,7 @@ file_reservation_paths response:
 ### Task Conflicts
 
 The dependency system prevents conflicts:
+
 - Tasks with blockers don't appear in `bd ready`
 - Assigned tasks show the assignee in `bd list`
 - `--status in_progress` signals active work
@@ -481,6 +486,7 @@ wc -l .beads/issues.jsonl
 ### Agent can't reserve files
 
 Check who holds the reservation:
+
 ```bash
 # In Claude Code, check the conflict response
 # Or look at .agent-mail/file_reservations/
@@ -489,6 +495,7 @@ Check who holds the reservation:
 ### Tasks not appearing in bd ready
 
 Check dependencies:
+
 ```bash
 bd dep tree <task-id>
 bd show <task-id>
@@ -496,7 +503,7 @@ bd show <task-id>
 
 ### Message not received
 
-```
+```txt
 fetch_inbox(
   project_key="...",
   agent_name="...",
