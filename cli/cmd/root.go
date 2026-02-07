@@ -14,9 +14,12 @@ import (
 	"github.com/egovelox/mozeidon/cmd/tabs"
 )
 
+var Version = "4.1.0"
+
 var rootCmd = &cobra.Command{
-	Use:   "mozeidon",
-	Short: "A cli to interact with moz://a firefox or chrome web-browser",
+	Use:     "mozeidon",
+	Version: Version,
+	Short:   "A cli to interact with moz://a firefox or chrome web-browser",
 	Long: `
 Mozeidon is a CLI to control a moz://a firefox or chrome instance.
 - retrieve tabs, switch between them or close them.
