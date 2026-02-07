@@ -2,7 +2,7 @@
   "description": "Native messaging add-on to interact with mozilla tabs and bookmarks",
   "manifest_version": 2,
   "name": "Mozeidon Z",
-  "version": "3.2.3",
+  "version": "4.0.0",
   "icons": {
     "48": "icons/mazinger-Z-48.png",
     "128": "icons/mazinger-Z-128.png"
@@ -22,5 +22,5 @@
   "browser_action": {
     "default_icon": "icons/mazinger-Z-128.png"
   },
-  "permissions": ["nativeMessaging", "tabs", "sessions", "bookmarks", "history", "tabGroups"]
+  "permissions": ["nativeMessaging", "tabs", "sessions", "bookmarks", "history", "tabGroups", "storage"]
 }
