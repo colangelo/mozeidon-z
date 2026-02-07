@@ -3,6 +3,8 @@
   "manifest_version": 2,
   "name": "Mozeidon Z",
   "version": "4.1.0",
+  "homepage_url": "https://github.com/colangelo/mozeidon-z",
+  "author": "A-Layer <acola@pm.me>",
   "icons": {
     "48": "icons/mazinger-Z-48.png",
     "128": "icons/mazinger-Z-128.png"
@@ -20,7 +22,8 @@
     "scripts": ["dist/background.js"]
   },
   "browser_action": {
-    "default_icon": "icons/mazinger-Z-128.png"
+    "default_icon": "icons/mazinger-Z-128.png",
+    "default_title": "Mozeidon Z"
   },
   "permissions": ["nativeMessaging", "tabs", "sessions", "bookmarks", "history", "tabGroups", "storage"]
 }

@@ -123,10 +123,16 @@ git-status:
 
 # Package Firefox extension for AMO upload (.xpi + source.zip)
 package-firefox:
-    cd firefox-addon && rm -f mozeidon-firefox.xpi mozeidon-source.zip && \
-    zip -r mozeidon-firefox.xpi manifest.json dist/ icons/ -x "*.DS_Store" && \
-    zip -r mozeidon-source.zip src/ package.json package-lock.json webpack.config.js tsconfig.json manifest.json icons/ -x "*.DS_Store" && \
-    echo "Created:" && ls -la mozeidon-firefox.xpi mozeidon-source.zip
+    #!/usr/bin/env bash
+    cd firefox-addon
+    VERSION=$(grep '"version"' manifest.json | sed 's/.*: "\(.*\)".*/\1/')
+    XPI_NAME="mozeidon-z-${VERSION}.xpi"
+    SRC_NAME="mozeidon-z-${VERSION}-source.zip"
+    rm -f mozeidon-z-*.xpi mozeidon-z-*-source.zip
+    zip -r "$XPI_NAME" manifest.json dist/ icons/ -x "*.DS_Store"
+    zip -r "$SRC_NAME" src/ package.json package-lock.json webpack.config.js tsconfig.json manifest.json icons/ -x "*.DS_Store"
+    echo "Created:"
+    ls -la "$XPI_NAME" "$SRC_NAME"
 
 # Package Chrome extension as .zip
 package-chrome:
