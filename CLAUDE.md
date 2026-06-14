@@ -20,10 +20,6 @@ Three components must work together:
 
 The CLI sends `Command` structs (command name + args string) via IPC. Extensions dispatch commands through `handler.ts` to service files (`tabs.ts`, `bookmarks.ts`, etc.) which call WebExtension APIs. Responses flow back through the same path.
 
-## Beads workflow
-
-Check ./BD_WORKFLOW.md
-
 ## MCP Agent Mail: coordination for multi-agent workflows
 
 What it is

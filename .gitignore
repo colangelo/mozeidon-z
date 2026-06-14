@@ -7,11 +7,6 @@ node_modules
 # VS Code
 .vscode/
 
-# bv (beads viewer) local config and caches
-.bv/
-
-# Beads subdirectories (only root .beads/ is tracked)
-*/.beads/
 mozeidon-firefox.xpi
 mozeidon-firefox-source.zip
 mozeidon-chrome.zip

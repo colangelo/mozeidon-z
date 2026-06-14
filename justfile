@@ -74,22 +74,6 @@ history:
     ./cli/mozeidon history
 
 # ─────────────────────────────────────────────────────────────
-# Beads (bd) Task Tracking
-# ─────────────────────────────────────────────────────────────
-
-# List all open tasks
-bd-list:
-    bd list
-
-# Show task details: just bd-show mozeidon-abc
-bd-show ID:
-    bd show {{ID}}
-
-# Close a task with reason: just bd-close mozeidon-abc "Done"
-bd-close ID REASON:
-    bd close {{ID}} -r "{{REASON}}"
-
-# ─────────────────────────────────────────────────────────────
 # Testing Commands
 # ─────────────────────────────────────────────────────────────
 
