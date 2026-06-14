@@ -53,16 +53,19 @@ function GoToOpenTabAction(props: { isLoading: boolean; tab: Tab; type: TAB_TYPE
     if (isLoading) {
       return;
     }
+    // Close Raycast FIRST so it yields focus to the previously-frontmost app,
+    // THEN activate Firefox. If we activate before closing, closeMainWindow
+    // restores focus to the pre-Raycast app and Firefox never comes forward.
+    await closeMainWindow({ clearRootSearch: true, popToRootType: PopToRootType.Immediate });
     switch (type) {
       case TAB_TYPE.OPENED_TABS:
-        switchTab(tab);
+        await switchTab(tab);
         break;
       case TAB_TYPE.RECENTLY_CLOSED:
       case TAB_TYPE.BOOKMARKS:
         openNewTab(tab.url);
         break;
     }
-    await closeMainWindow({ clearRootSearch: true, popToRootType: PopToRootType.Immediate });
   }
   return <Action title="Open Tab" icon={{ source: Icon.Eye }} onAction={handleAction} />;
 }
