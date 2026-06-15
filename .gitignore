@@ -15,3 +15,7 @@ mozeidon-chrome.zip
 # Built CLI binary (root) and stray broken symlink
 /mozeidon
 /Mozeidon-Z
+
+# claude-mem auto-generated context placeholders (only the root CLAUDE.md is real)
+**/CLAUDE.md
+!/CLAUDE.md
