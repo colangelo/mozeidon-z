@@ -7,10 +7,11 @@ node_modules
 # VS Code
 .vscode/
 
-mozeidon-firefox.xpi
-mozeidon-firefox-source.zip
+# Extension packages (build artifacts)
+*.xpi
+*-source.zip
 mozeidon-chrome.zip
 
-# Extension packages
-*.xpi
-mozeidon-source.zip
+# Built CLI binary (root) and stray broken symlink
+/mozeidon
+/Mozeidon-Z
