@@ -146,3 +146,34 @@ Releases are automated via GitHub Actions + goreleaser. Push a tag to trigger:
 git tag -a v2.0.0 -m "Release message"
 git push origin v2.0.0
 ```
+
+## Keeping it current
+
+Fork of [`egovelox/mozeidon`](https://github.com/egovelox/mozeidon) (`upstream` remote). The
+CLI, both extensions, and the Raycast extension are built from here; the native app comes from
+the separate `mozeidon-native-app` repo (or Homebrew).
+
+**After changing the source, rebuild the affected piece — and note the loaded browser extension
+does NOT auto-update, you must reload it:**
+
+| Changed | Rebuild | Then |
+|---|---|---|
+| `cli/**` | `just install-cli` (or `make build-cli`) | re-run the CLI; nothing to reload |
+| `firefox-addon/**` | `just build-firefox && just package-firefox` | reload in Firefox (`about:debugging` → Reload, or re-install the `.xpi`); bump `manifest.json` version when releasing |
+| `chrome-addon/**` | `just build-chrome && just package-chrome` | reload at `chrome://extensions` |
+| `raycast/**` | `just build-raycast` | reload the extension in Raycast |
+| native app | from `mozeidon-native-app` / Homebrew | — |
+
+Build-only/devDependency changes (e.g. a webpack bump) don't change runtime behaviour, so no
+reload is needed for those.
+
+**Sync from upstream:**
+
+```bash
+git fetch upstream
+git log --oneline main..upstream/main     # what's new upstream
+git diff --stat main...upstream/main      # scope before merging/porting
+```
+
+This fork carries substantial local changes, so upstream commits are usually *ported*
+(reimplemented) rather than merged wholesale — expect conflicts in the rewritten `firefox-addon/`.
