@@ -122,6 +122,27 @@ package-firefox:
     echo "Created:"
     ls -la "$XPI_NAME" "$SRC_NAME"
 
+# Submit a NEW Firefox version to AMO (listed): build → package → sign & publish.
+# All installs auto-update once AMO approves. Bump manifest.json "version" first
+# (must exceed the published version). Reads AMO JWT creds from the environment:
+#   WEB_EXT_API_KEY (issuer), WEB_EXT_API_SECRET (secret) — never pass on the CLI.
+submit-firefox: build-firefox package-firefox
+    #!/usr/bin/env bash
+    set -euo pipefail
+    : "${WEB_EXT_API_KEY:?set WEB_EXT_API_KEY (AMO JWT issuer)}"
+    : "${WEB_EXT_API_SECRET:?set WEB_EXT_API_SECRET (AMO JWT secret)}"
+    cd firefox-addon
+    VERSION=$(grep '"version"' manifest.json | sed 's/.*: "\(.*\)".*/\1/')
+    echo "Submitting mozeidon-z ${VERSION} to AMO (listed channel)…"
+    rm -rf .amo-pkg && mkdir -p .amo-pkg
+    cp -r manifest.json dist icons .amo-pkg/
+    # web-ext reads WEB_EXT_API_KEY / WEB_EXT_API_SECRET from the env (keeps them out of argv)
+    npx --yes web-ext@latest sign \
+      --source-dir=.amo-pkg --channel=listed \
+      --upload-source-code="mozeidon-z-${VERSION}-source.zip"
+    rm -rf .amo-pkg
+    echo "✓ Submitted ${VERSION}. AMO reviews/signs; installs auto-update once approved."
+
 # Package Chrome extension as .zip
 package-chrome:
     cd chrome-addon && zip -r ../mozeidon-chrome.zip manifest.json dist/ assets/

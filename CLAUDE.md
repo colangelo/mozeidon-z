@@ -177,3 +177,15 @@ git diff --stat main...upstream/main      # scope before merging/porting
 
 This fork carries substantial local changes, so upstream commits are usually *ported*
 (reimplemented) rather than merged wholesale — expect conflicts in the rewritten `firefox-addon/`.
+
+**Publishing a new Firefox version to AMO** (auto-updates every install):
+
+```bash
+# bump firefox-addon/manifest.json "version" first, then:
+just submit-firefox     # build → package → web-ext sign --channel listed (+ source upload)
+```
+
+Needs AMO dev-hub JWT credentials in the environment — `WEB_EXT_API_KEY` (issuer) and
+`WEB_EXT_API_SECRET` (secret), from <https://addons.mozilla.org/developers/addon/api/key/>.
+Never put them in the repo or on the command line. Listed submissions go through AMO review
+(source is uploaded for the bundled build); once approved, Firefox auto-updates installs.
