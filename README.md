@@ -196,7 +196,7 @@ Or download from the [release page](https://github.com/egovelox/mozeidon/release
 ### Build from Source (This Fork)
 
 ```bash
-git clone https://github.com/anthropics/mozeidon-z.git  # TODO: update with actual fork URL
+git clone https://github.com/colangelo/mozeidon-z.git
 cd mozeidon-z/cli && go build
 ```
 

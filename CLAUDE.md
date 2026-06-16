@@ -159,7 +159,7 @@ does NOT auto-update, you must reload it:**
 | Changed | Rebuild | Then |
 |---|---|---|
 | `cli/**` | `just install-cli` (or `make build-cli`) | re-run the CLI; nothing to reload |
-| `firefox-addon/**` | `just build-firefox && just package-firefox` | reload in Firefox (`about:debugging` → Reload, or re-install the `.xpi`); bump `manifest.json` version when releasing |
+| `firefox-addon/**` | `just build-firefox` | **dev:** `about:debugging` → Load Temporary Add-on. **release:** bump `manifest.json` version → `just package-firefox` → submit to AMO ([Mozeidon Z](https://addons.mozilla.org/firefox/addon/mozeidon-z/)) → installs auto-update (release Firefox won't load an unsigned `.xpi`) |
 | `chrome-addon/**` | `just build-chrome && just package-chrome` | reload at `chrome://extensions` |
 | `raycast/**` | `just build-raycast` | reload the extension in Raycast |
 | native app | from `mozeidon-native-app` / Homebrew | — |
