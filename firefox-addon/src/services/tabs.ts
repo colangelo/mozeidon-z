@@ -259,13 +259,27 @@ export async function activateTab(port: Port, { args }: Command) {
       .update(tabId, { active: true })
       .then(() => browser.tabs.get(tabId))
       .then((tab) => {
-        log("activated tab:", tabId, "focusing window:", tab.windowId, "title:", tab.title)
-        return browser.windows.update(tab.windowId!, { focused: true }).then(win => ({ win, tabTitle: tab.title || "" }))
+        log(
+          "activated tab:",
+          tabId,
+          "focusing window:",
+          tab.windowId,
+          "title:",
+          tab.title
+        )
+        return browser.windows
+          .update(tab.windowId!, { focused: true })
+          .then((win) => ({ win, tabTitle: tab.title || "" }))
       })
       .then(({ win, tabTitle }) => {
         log("window focused:", win.id, "returning title:", tabTitle)
         port.postMessage(
-          Response.data({ success: true, tabId, windowId: win.id, title: tabTitle })
+          Response.data({
+            success: true,
+            tabId,
+            windowId: win.id,
+            title: tabTitle,
+          })
         )
         return delay(100) // Increased delay to ensure window focus propagates
       })
