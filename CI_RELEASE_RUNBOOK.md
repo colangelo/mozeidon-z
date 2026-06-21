@@ -5,6 +5,12 @@ The worked, reusable runbook for the homelab CI/CD pattern, as implemented in th
 `gitea.cat-bluegill.ts.net` (git) + `ci.cat-bluegill.ts.net` (Woodpecker) stack. Lines marked
 **[repo-specific]** change per project.
 
+> **Canonical / portable standard:** the repo-agnostic version of this lives in the
+> **home-network** repo at `docs/ci-release-standard.md` (the cross-repo source of truth, adopted
+> 2026-06-21 from this runbook). This file is mozeidon's **repo-specific instance** —
+> the worked *binaries → Gitea Releases* example. Keep shared mechanics in sync with the standard;
+> document only mozeidon deltas here.
+
 ## The stack
 
 - **Gitea** `gitea.cat-bluegill.ts.net` — git hosting (tailnet-only); orgs owned by `ac`.
