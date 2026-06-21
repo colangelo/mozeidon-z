@@ -39,14 +39,15 @@ steps:
     when:
       - event: tag
         ref: refs/tags/v*
+    # NB: Woodpecker substitutes ${...} in commands before the shell runs, which
+    # blanks shell parameter-expansions like ${t%/*}. So build each target with
+    # explicit literal GOOS/GOARCH instead of a loop.
     commands:
       - mkdir -p dist-release
-      - |
-        for t in darwin/arm64 darwin/amd64 linux/arm64 linux/amd64; do
-          os=${t%/*}; arch=${t#*/}
-          echo "building mozeidon-$os-$arch"
-          (cd cli && GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -o "../dist-release/mozeidon-$os-$arch" .)
-        done
+      - (cd cli && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-darwin-arm64 .)
+      - (cd cli && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-darwin-amd64 .)
+      - (cd cli && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-linux-arm64 .)
+      - (cd cli && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-linux-amd64 .)
       - ls -la dist-release
 
   - name: release-publish
