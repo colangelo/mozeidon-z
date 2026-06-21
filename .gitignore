@@ -10,6 +10,7 @@ node_modules
 # Extension packages (build artifacts)
 *.xpi
 *-source.zip
+source-v*.zip
 mozeidon-chrome.zip
 
 # Built CLI binary (root) and stray broken symlink
