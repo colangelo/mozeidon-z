@@ -144,6 +144,10 @@ Tab IDs use `windowId:tabId` format. Bookmark folder paths start and end with `/
 CI runs on **Woodpecker** (`ci.cat-bluegill.ts.net`), driven by `.woodpecker.yml`. The Gitea
 repo `A-Layer/mozeidon-z` is activated there; pushes/tags fire pipelines.
 
+📖 **Full, portable runbook (setup, secrets, releasing, debugging, gotchas):
+[`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md)** — reusable across all our Gitea+Woodpecker repos.
+The summary below is the quick reference.
+
 - **Build pipeline** (`.woodpecker.yml`): mirrors `just build-all` — builds the CLI (`golang:1.24`)
   and both add-ons (`node:20`, chrome src synced from firefox-addon) in parallel on
   push/PR/manual. Raycast is excluded (its `ray build` needs the Raycast toolchain/login).
