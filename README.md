@@ -344,7 +344,7 @@ Other useful just commands:
 Build the cli and the extensions locally :
 
 ```bash
-make all
+just build-all
 ```
 Now, before loading the local extension in your browser, don't forget to disable any running instance of the `mozeidon` extension. 
 

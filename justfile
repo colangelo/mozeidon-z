@@ -10,24 +10,26 @@ default:
 # ─────────────────────────────────────────────────────────────
 
 # Build everything (CLI + Firefox addon + Chrome addon)
-build-all:
-    make all
+build-all: build-cli build-firefox build-chrome
 
-# Build CLI only
+# Build CLI only (→ cli/mozeidon)
 build-cli:
-    make build-cli
+    cd cli && go build
 
 # Build and install CLI to ~/.local/bin
 install-cli:
     cd cli && go build -o ~/.local/bin/mozeidon .
 
-# Build Firefox addon only
+# Build Firefox addon (also copies the webextension-polyfill source map to silence a Firefox warning)
 build-firefox:
-    make build-firefox-addon
+    cd firefox-addon && npm install && npm run prettier && npm run build
+    cd firefox-addon && cp node_modules/webextension-polyfill/dist/browser-polyfill.js.map dist/ 2>/dev/null || true
 
-# Build Chrome addon only
+# Build Chrome addon (src is synced verbatim from firefox-addon, then built)
 build-chrome:
-    make build-chrome-addon
+    rm -rf chrome-addon/src
+    cp -r firefox-addon/src chrome-addon/src
+    cd chrome-addon && npm install && npm run build
 
 # Build Raycast extension
 build-raycast:

@@ -4,7 +4,7 @@ context: |
   Mozeidon: CLI tool controlling Firefox/Chrome browsers via IPC and native messaging.
   Architecture: CLI (Go/Cobra) -> Native App (IPC broker) -> Browser Extension (WebExtension APIs)
   Tech stack: Go 1.21 (CLI), TypeScript + Webpack (extensions), Manifest V2 (Firefox), Manifest V3 (Chrome)
-  Build: make all, just recipes for common tasks
+  Build: just build-all (and other just recipes; see justfile)
   Git: conventional commits, main branch, tags trigger releases via goreleaser
   Command protocol: 15 commands (tabs, bookmarks, history, groups) over IPC
   Tab IDs use windowId:tabId format. Bookmark folder paths start/end with /.

@@ -56,12 +56,12 @@ Common pitfalls
 
 ```bash
 # Build everything
-make all
+just build-all
 
 # Build individual components
-make build-cli              # Builds Go binary at cli/mozeidon
-make build-firefox-addon    # Runs npm install, prettier, webpack in firefox-addon/
-make build-chrome-addon     # Runs npm install, prettier, webpack in chrome-addon/
+just build-cli              # Builds Go binary at cli/mozeidon
+just build-firefox          # npm install, prettier, webpack in firefox-addon/
+just build-chrome           # syncs src from firefox-addon, then npm install + webpack
 
 # Run CLI (after build)
 ./cli/mozeidon tabs get
@@ -134,7 +134,7 @@ Tab IDs use `windowId:tabId` format. Bookmark folder paths start and end with `/
 
 ## Testing Locally
 
-1. Build: `make all`
+1. Build: `just build-all`
 2. Disable any installed mozeidon extension in browser
 3. Load temporary extension: Firefox `about:debugging` → Load Temporary Add-on → select `firefox-addon/manifest.json`
 4. Test: `./cli/mozeidon tabs get`
@@ -159,7 +159,7 @@ does NOT auto-update, you must reload it:**
 
 | Changed | Rebuild | Then |
 |---|---|---|
-| `cli/**` | `just install-cli` (or `make build-cli`) | re-run the CLI; nothing to reload |
+| `cli/**` | `just install-cli` (or `just build-cli`) | re-run the CLI; nothing to reload |
 | `firefox-addon/**` | `just build-firefox` | **dev:** `about:debugging` → Load Temporary Add-on. **release:** bump `manifest.json` version → `just package-firefox` → submit to AMO ([Mozeidon-Z](https://addons.mozilla.org/firefox/addon/mozeidon-z/)) → installs auto-update (release Firefox won't load an unsigned `.xpi`) |
 | `chrome-addon/**` | `just build-chrome && just package-chrome` | reload at `chrome://extensions` |
 | `raycast/**` | `just build-raycast` | reload the extension in Raycast |

@@ -3,15 +3,13 @@
 The source code is written in ``typescript`` and built with ``webpack``.
 As specified in the ``package.json``, the ``node`` version should be >= 20 and the ``npm`` version should be >= 10.
 
-We provide a shell script named ``build.sh`` that will produce the built artifact in ``dist/background.js``
+The Chrome add-on shares its TypeScript source with the Firefox add-on. Build it from the repo root with:
 
 ```bash
-#!/usr/bin/env bash
-
-set -ex
-
-npm install && npm run build
+just build-chrome
 ```
+
+This syncs ``src/`` from ``firefox-addon/`` and produces ``dist/background.js``.
 
 Note :
 The source-code was provided in a ``source.zip`` file produced with the command :

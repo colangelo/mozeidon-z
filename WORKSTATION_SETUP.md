@@ -46,7 +46,7 @@ pgrep -fl mozeidon-native-app   # bridge process, spawned by Firefox
 |---|---|---|---|---|
 | **CLI** | **here** (`cli/`) | `~/.local/bin/mozeidon` (on `PATH`) | 5.0.0 | Built locally via `just install-cli`. This is the one that runs. |
 | **Firefox extension** | **here** (`firefox-addon/`) | loaded in Firefox as `mozeidon-z@a-layer.io` | 5.0.0 | Built `.xpi` is a gitignored artifact; release via `just submit-firefox` (AMO, auto-updates installs). |
-| **Chrome extension** | **here** (`chrome-addon/`) | not loaded | 5.0.0 | `chrome-addon/src/` is generated from `firefox-addon/src/` (verbatim copy by `build.local.sh`) and gitignored. Kept in sync for completeness; not in active use. |
+| **Chrome extension** | **here** (`chrome-addon/`) | not loaded | 5.0.0 | `chrome-addon/src/` is generated from `firefox-addon/src/` (verbatim copy by `just build-chrome`) and gitignored. Kept in sync for completeness; not in active use. |
 | **native-app** | **Homebrew** `egovelox/mozeidon` tap | `/opt/homebrew/bin/mozeidon-native-app` | 4.0.0 | **Not built here.** The actual browser bridge. Installed *on request* (a `brew leaves` leaf). Keep it. |
 | **Raycast extension** | **here** (`raycast/`) | Raycast dev extension | — | Primary front-end. Raycast handles its own versioning (no semver in `package.json`). |
 
