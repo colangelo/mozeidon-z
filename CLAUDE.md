@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Mozeidon is a CLI tool that controls Firefox/Chrome browsers from the terminal via IPC and native messaging protocols. It manages tabs, bookmarks, history, and tab groups.
+Mozeidon-Z is a macOS-focused CLI tool that controls Firefox/Chrome browsers from the terminal via IPC and native messaging protocols. It manages tabs, bookmarks, history, and tab groups. It is a standalone hard fork of [`egovelox/mozeidon`](https://github.com/egovelox/mozeidon) (see *Keeping it current* below).
 
 ## Architecture
 
@@ -141,17 +141,18 @@ Tab IDs use `windowId:tabId` format. Bookmark folder paths start and end with `/
 
 ## Releases
 
-Releases are automated via GitHub Actions + goreleaser. Push a tag to trigger:
+Releases are automated via GitHub Actions + goreleaser. Push a version tag to trigger:
 ```bash
-git tag -a v2.0.0 -m "Release message"
-git push origin v2.0.0
+git tag -a v5.0.0 -m "Mozeidon-Z 5.0.0"
+git push origin v5.0.0
 ```
 
 ## Keeping it current
 
-Fork of [`egovelox/mozeidon`](https://github.com/egovelox/mozeidon) (`upstream` remote). The
-CLI, both extensions, and the Raycast extension are built from here; the native app comes from
-the separate `mozeidon-native-app` repo (or Homebrew).
+**Mozeidon-Z** (`colangelo/mozeidon-z`) — a standalone hard fork of
+[`egovelox/mozeidon`](https://github.com/egovelox/mozeidon) (`upstream` remote, kept only as an
+occasional cherry-pick source). The CLI, both extensions, and the Raycast extension are built
+from here; the native app comes from the separate `mozeidon-native-app` repo (or Homebrew).
 
 **After changing the source, rebuild the affected piece — and note the loaded browser extension
 does NOT auto-update, you must reload it:**
@@ -159,7 +160,7 @@ does NOT auto-update, you must reload it:**
 | Changed | Rebuild | Then |
 |---|---|---|
 | `cli/**` | `just install-cli` (or `make build-cli`) | re-run the CLI; nothing to reload |
-| `firefox-addon/**` | `just build-firefox` | **dev:** `about:debugging` → Load Temporary Add-on. **release:** bump `manifest.json` version → `just package-firefox` → submit to AMO ([Mozeidon Z](https://addons.mozilla.org/firefox/addon/mozeidon-z/)) → installs auto-update (release Firefox won't load an unsigned `.xpi`) |
+| `firefox-addon/**` | `just build-firefox` | **dev:** `about:debugging` → Load Temporary Add-on. **release:** bump `manifest.json` version → `just package-firefox` → submit to AMO ([Mozeidon-Z](https://addons.mozilla.org/firefox/addon/mozeidon-z/)) → installs auto-update (release Firefox won't load an unsigned `.xpi`) |
 | `chrome-addon/**` | `just build-chrome && just package-chrome` | reload at `chrome://extensions` |
 | `raycast/**` | `just build-raycast` | reload the extension in Raycast |
 | native app | from `mozeidon-native-app` / Homebrew | — |
@@ -167,16 +168,20 @@ does NOT auto-update, you must reload it:**
 Build-only/devDependency changes (e.g. a webpack bump) don't change runtime behaviour, so no
 reload is needed for those.
 
-**Sync from upstream:**
+**Relationship to upstream:** functionally **0 features behind** — the security fix, MV3 startup,
+and multi-browser/profiles are all present (profiles is identical to upstream). By-SHA the
+divergence reads "ahead/behind" only because the history was rebased to a 2024 merge-base, so the
+cherry-pick well is effectively dry. Full detail + rationale: [`WORKSTATION_SETUP.md`](WORKSTATION_SETUP.md).
 
 ```bash
 git fetch upstream
-git log --oneline main..upstream/main     # what's new upstream
-git diff --stat main...upstream/main      # scope before merging/porting
+git log --oneline main..upstream/main     # check (rarely anything new)
+git diff --stat main...upstream/main      # scope before porting
 ```
 
-This fork carries substantial local changes, so upstream commits are usually *ported*
-(reimplemented) rather than merged wholesale — expect conflicts in the rewritten `firefox-addon/`.
+If something genuinely new appears upstream, **port it surgically** (reimplement) — never merge.
+The rewritten `firefox-addon/` and the fork-only `tabs pick` / `tabs activate` features conflict
+heavily with upstream's tree.
 
 **Publishing a new Firefox version to AMO** (auto-updates every install):
 
