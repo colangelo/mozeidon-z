@@ -1,0 +1,35 @@
+# Woodpecker CI for Mozeidon-Z — mirrors `just build-all`.
+# Builds the CLI (Go) and both browser add-ons (TypeScript/webpack).
+# Raycast is intentionally excluded (its `ray build` needs the Raycast toolchain/login).
+# Release-on-tag → Gitea Releases is a follow-up (needs a `gitea_token` secret).
+#
+# Every step sets depends_on so the DAG is explicit; the three builds are
+# independent and run in parallel.
+
+steps:
+  - name: build-cli
+    image: golang:1.24
+    depends_on: []
+    when:
+      - event: [push, pull_request, manual]
+    commands:
+      - cd cli && go build
+
+  - name: build-firefox
+    image: node:20
+    depends_on: []
+    when:
+      - event: [push, pull_request, manual]
+    commands:
+      - cd firefox-addon && npm ci && npm run build
+
+  # chrome-addon/src/ is gitignored and synced verbatim from firefox-addon (== just build-chrome)
+  - name: build-chrome
+    image: node:20
+    depends_on: []
+    when:
+      - event: [push, pull_request, manual]
+    commands:
+      - rm -rf chrome-addon/src
+      - cp -r firefox-addon/src chrome-addon/src
+      - cd chrome-addon && npm ci && npm run build
