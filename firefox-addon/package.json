@@ -1,6 +1,6 @@
 {
   "name": "mozeidon-firefox-addon",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "background script for mozeidon firefox-addon",
   "author": "A-Layer <acola@pm.me>",
   "license": "MIT",
