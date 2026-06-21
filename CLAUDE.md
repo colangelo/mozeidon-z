@@ -109,7 +109,7 @@ just firefox-debug          # Open Firefox debugging page (about:debugging)
 
 ## Key File Locations
 
-**CLI (Go 1.21, Cobra)**
+**CLI (Go 1.24, Cobra)**
 - `cli/cmd/` - Cobra command definitions (tabs, bookmarks, bookmark, history, groups)
 - `cli/core/` - Business logic for each operation
 - `cli/browser/core/browser-service.go` - IPC client wrapper
@@ -119,13 +119,13 @@ just firefox-debug          # Open Firefox debugging page (about:debugging)
 - `*/src/app.ts` - Entry point, native messaging listener
 - `*/src/handler.ts` - Command dispatcher (switch on CommandName enum)
 - `*/src/services/` - Browser API wrappers (tabs.ts, bookmarks.ts, history.ts, groups.ts)
-- `*/src/models/command.ts` - CommandName enum defining all 15 commands
+- `*/src/models/command.ts` - CommandName enum defining the command names
 - Firefox uses Manifest V2 (`background.scripts`), Chrome uses Manifest V3 (service worker)
 
 ## Command Protocol
 
 Commands are defined in `CommandName` enum:
-- Tabs: `get-tabs`, `switch-tab`, `close-tabs`, `new-tab`, `update-tab`, `duplicate-tab`, `new-group-tab`, `get-recently-closed-tabs`
+- Tabs: `get-tabs`, `switch-tab`, `activate-tab`, `close-tabs`, `new-tab`, `update-tab`, `duplicate-tab`, `new-group-tab`, `get-recently-closed-tabs`
 - Bookmarks: `get-bookmarks`, `write-bookmark`
 - History: `get-history-items`, `delete-history-items`
 - Groups: `get-groups`, `update-group`, `move-group`
@@ -139,13 +139,43 @@ Tab IDs use `windowId:tabId` format. Bookmark folder paths start and end with `/
 3. Load temporary extension: Firefox `about:debugging` → Load Temporary Add-on → select `firefox-addon/manifest.json`
 4. Test: `./cli/mozeidon tabs get`
 
-## Releases
+## CI / Releases (Woodpecker)
 
-Releases are automated via GitHub Actions + goreleaser. Push a version tag to trigger:
+CI runs on **Woodpecker** (`ci.cat-bluegill.ts.net`), driven by `.woodpecker.yml`. The Gitea
+repo `A-Layer/mozeidon-z` is activated there; pushes/tags fire pipelines.
+
+- **Build pipeline** (`.woodpecker.yml`): mirrors `just build-all` — builds the CLI (`golang:1.24`)
+  and both add-ons (`node:20`, chrome src synced from firefox-addon) in parallel on
+  push/PR/manual. Raycast is excluded (its `ray build` needs the Raycast toolchain/login).
+- **Release-on-tag → Gitea Releases:** planned, not yet wired. Needs a `gitea_token` Woodpecker
+  secret — creating a Gitea Release is an API write the Woodpecker↔Gitea OAuth link alone
+  doesn't cover.
+- The old GitHub-Actions goreleaser path (`.github/workflows/release.yml`) is **deprecated**;
+  disable **Gitea Actions** for the repo so it doesn't also pick up that workflow.
+- Firefox extension distribution is unchanged: AMO via `just submit-firefox` (see below).
+
+### Checking CI status (woodpecker-cli)
+
+The agent can inspect and debug pipelines itself. Auth comes from 1Password — the token is in
+the **AC-DevOps** vault (*not* `Private`, which is what some other repos' `.envrc` reference):
+
 ```bash
-git tag -a v5.0.0 -m "Mozeidon-Z 5.0.0"
-git push origin v5.0.0
+export WOODPECKER_SERVER=https://ci.cat-bluegill.ts.net
+export WOODPECKER_TOKEN=$(op read 'op://AC-DevOps/woodpecker - Personal Access Token/password')
+
+woodpecker-cli info                                            # verify auth (→ User: ac)
+woodpecker-cli pipeline ls   A-Layer/mozeidon-z               # recent runs
+woodpecker-cli pipeline last A-Layer/mozeidon-z               # latest run
+woodpecker-cli pipeline ps   A-Layer/mozeidon-z <N>           # step states for run N
+woodpecker-cli pipeline log show A-Layer/mozeidon-z <N> <step> # tail a step's log (debug)
+woodpecker-cli pipeline start  A-Layer/mozeidon-z <N>          # re-run run N (same commit)
+woodpecker-cli pipeline create A-Layer/mozeidon-z --branch main # fresh manual run
 ```
+
+> **1Password / AFK caveat:** `op read` triggers a Touch ID / biometric prompt. If the user is
+> away the prompt **times out** — that is **not** a failure and **not** a reason to abandon the
+> task. Do not loop-retry; **wait for the user to return**, then re-run the command. (Probe op
+> readiness with `op vault list`, never `op whoami`.)
 
 ## Keeping it current
 
