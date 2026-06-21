@@ -39,9 +39,9 @@ steps:
     when:
       - event: tag
         ref: refs/tags/v*
-    # NB: Woodpecker substitutes ${...} in commands before the shell runs, which
-    # blanks shell parameter-expansions like ${t%/*}. So build each target with
-    # explicit literal GOOS/GOARCH instead of a loop.
+    # NB: Woodpecker expands dollar-brace expressions across the whole config
+    # (commands AND comments) before the shell runs, and rejects ones it can't
+    # parse. So avoid them here: build each target with literal GOOS/GOARCH.
     commands:
       - mkdir -p dist-release
       - (cd cli && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-darwin-arm64 .)
