@@ -147,9 +147,14 @@ repo `A-Layer/mozeidon-z` is activated there; pushes/tags fire pipelines.
 - **Build pipeline** (`.woodpecker.yml`): mirrors `just build-all` — builds the CLI (`golang:1.24`)
   and both add-ons (`node:20`, chrome src synced from firefox-addon) in parallel on
   push/PR/manual. Raycast is excluded (its `ray build` needs the Raycast toolchain/login).
-- **Release-on-tag → Gitea Releases:** planned, not yet wired. Needs a `gitea_token` Woodpecker
-  secret — creating a Gitea Release is an API write the Woodpecker↔Gitea OAuth link alone
-  doesn't cover.
+- **Release-on-tag → Gitea Releases (working):** on a `v*` tag, `release-build` cross-compiles
+  the CLI (darwin/linux × arm64/amd64) and `release-publish` creates the Gitea Release and uploads
+  the binaries, authed via the `gitea_token` repo secret — a least-priv `write:repository` PAT
+  stored in 1Password `AC-DevOps` (`gitea - woodpecker mozeidon-z token`). Cut a release with:
+  `git tag -a v5.0.1 -m "…" && git push internal v5.0.1`.
+- **Woodpecker gotcha:** Woodpecker expands `${...}` across the *whole* config (commands AND
+  comments) and errors ("unable to parse variable name") on anything it can't parse — keep shell
+  parameter-expansions like `${var%/*}` out of `.woodpecker.yml`; use literals or `$VAR`.
 - The old GitHub-Actions goreleaser path (`.github/workflows/release.yml`) is **deprecated**;
   disable **Gitea Actions** for the repo so it doesn't also pick up that workflow.
 - Firefox extension distribution is unchanged: AMO via `just submit-firefox` (see below).
