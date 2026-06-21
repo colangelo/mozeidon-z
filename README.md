@@ -1,8 +1,10 @@
-# <img src="firefox-addon/icons/mazinger-Z-128.png" width="32" height="32" /> Mozeidon Z
+# <img src="firefox-addon/icons/mazinger-Z-128.png" width="32" height="32" /> Mozeidon-Z
 
-> **This is a fork of [egovelox/mozeidon](https://github.com/egovelox/mozeidon)** with additional features for macOS users.
+> **Mozeidon-Z** is a macOS-focused hard fork of [egovelox/mozeidon](https://github.com/egovelox/mozeidon).
+> It began as a fork but now diverges substantially and is maintained as its own project — see
+> [What's different in Mozeidon-Z](#whats-different-in-mozeidon-z).
 
-## What's New in This Fork
+## What's different in Mozeidon-Z
 
 - **`tabs activate`** - Activate a tab AND bring its Firefox window to the foreground, even across macOS Spaces
 - **`tabs pick`** - Interactive TUI tab picker using [bubbletea](https://github.com/charmbracelet/bubbletea)
@@ -11,7 +13,7 @@
 
 ## Firefox Extension
 
-Install the **Mozeidon Z** extension from AMO:
+Install the **Mozeidon-Z** extension from AMO:
 
 **[https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/](https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/)**
 
@@ -26,7 +28,7 @@ Install the **Mozeidon Z** extension from AMO:
 
 ## Intro
 
-Mozeidon is essentially a CLI written in [Go](https://go.dev/) to handle [Mozilla Firefox](https://www.mozilla.org/firefox/) tabs, history, and bookmarks.
+Mozeidon-Z is a CLI written in [Go](https://go.dev/) to handle [Mozilla Firefox](https://www.mozilla.org/firefox/) tabs, history, and bookmarks — plus a Raycast front-end for macOS.
 
 Here you'll find:
 - A guide to complete the [installation](#installation) of the mozeidon components (see [architecture](#architecture))
@@ -77,7 +79,7 @@ Using the `mozeidon` CLI (see [CLI reference](CLI_REFERENCE.md)), you can:
 
 Mozeidon is built on IPC and native-messaging protocols, using the following components:
 
-- **[Mozeidon Z Firefox Extension](#mozeidon-z-firefox-extension)** - A TypeScript WebExtension running in Firefox that receives commands and sends back data (tabs, bookmarks, etc.) by leveraging browser APIs.
+- **[Mozeidon-Z Firefox Extension](#mozeidon-z-firefox-extension)** - A TypeScript WebExtension running in Firefox that receives commands and sends back data (tabs, bookmarks, etc.) by leveraging browser APIs.
 
 - **[Mozeidon native-app](#mozeidon-native-app)** - A Go program that acts as an IPC broker. It communicates with the browser extension via [native-messaging](https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/Native_messaging) protocol.
 
@@ -88,43 +90,37 @@ Mozeidon is built on IPC and native-messaging protocols, using the following com
 
 You need to install 3 components:
 
-1. **[Mozeidon Z Firefox Extension](#mozeidon-z-firefox-extension)** - Install from AMO
+1. **[Mozeidon-Z Firefox Extension](#mozeidon-z-firefox-extension)** - Install from AMO
 2. **[Mozeidon native-app](#mozeidon-native-app)** - Install via Homebrew
 3. **[Mozeidon CLI](#mozeidon-cli)** - Install via Homebrew or build from source
 
-### Quick Start (macOS with Homebrew)
+### Quick Start (macOS)
 
 ```bash
-# Install native app and CLI
-brew tap egovelox/homebrew-mozeidon
+# 1. Install the native-messaging bridge (Homebrew)
 brew install egovelox/mozeidon/mozeidon-native-app
-brew install egovelox/mozeidon/mozeidon
 
-# Configure native messaging (or use: just setup-native-messaging)
-mkdir -p ~/Library/Application\ Support/Mozilla/NativeMessagingHosts
-cat > ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon.json << 'EOF'
-{
-  "name": "mozeidon",
-  "description": "Mozeidon native messaging host",
-  "path": "/opt/homebrew/bin/mozeidon-native-app",
-  "type": "stdio",
-  "allowed_extensions": ["mozeidon-addon@egovelox.com", "mozeidon-z@a-layer.io"]
-}
-EOF
+# 2. Build + install the Mozeidon-Z CLI from this repo
+git clone https://github.com/colangelo/mozeidon-z.git
+cd mozeidon-z && just install-cli      # → ~/.local/bin/mozeidon
 
-# Restart Firefox, then test
+# 3. Register native messaging (writes the manifest for you)
+just setup-native-messaging
+
+# 4. Install the Mozeidon-Z extension from AMO, restart Firefox, then test
 mozeidon tabs get
 ```
 
-## Mozeidon Z Firefox Extension
+> Do **not** `brew install` the CLI — the Mozeidon-Z CLI is built from this repo. Installing a
+> brew `mozeidon` would put a second binary on `PATH` that shadows your local build.
 
-The **Mozeidon Z** addon for Mozilla Firefox (this fork) can be found here:
+## Mozeidon-Z Firefox Extension
+
+The **Mozeidon-Z** addon for Mozilla Firefox can be found on AMO:
 
 **[https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/](https://addons.mozilla.org/en-US/firefox/addon/mozeidon-z/)**
 
-Latest version: `3.2.2`
-
-> Note: The original [mozeidon extension](https://addons.mozilla.org/en-US/firefox/addon/mozeidon) will also work, but you'll miss the improvements in this fork.
+Installs auto-update once a new version is approved on AMO (publish with `just submit-firefox`).
 
 ## Mozeidon native-app
 
@@ -184,21 +180,17 @@ mozeidon tabs activate 3289:596
 mozeidon tabs pick
 ```
 
-### Install via Homebrew
-
-```bash
-brew tap egovelox/homebrew-mozeidon
-brew install egovelox/mozeidon/mozeidon
-```
-
-Or download from the [release page](https://github.com/egovelox/mozeidon/releases).
-
-### Build from Source (This Fork)
+### Build & install (this repo)
 
 ```bash
 git clone https://github.com/colangelo/mozeidon-z.git
-cd mozeidon-z/cli && go build
+cd mozeidon-z && just install-cli      # builds cli/ → ~/.local/bin/mozeidon
 ```
+
+Or build in place: `cd cli && go build` (→ `cli/mozeidon`).
+
+> The Mozeidon-Z CLI is **not** distributed via Homebrew — build it from this repo. Only the
+> `mozeidon-native-app` bridge comes from brew.
 
 ## Examples 
 
@@ -302,48 +294,25 @@ open new tab [C-o]'\
 
 ### Raycast extension
 
-For MacOS and Firefox users only : see [the Mozeidon Raycast extension](https://www.raycast.com/egovelox/mozeidon).
+macOS + Firefox only. The Mozeidon-Z Raycast extension lives in [`raycast/`](raycast/) and is the primary front-end. Install it in dev mode:
 
-This Raycast extension will not work with Chrome browser. Better see [Swell](https://github.com/egovelox/swell).
+```bash
+just raycast-dev        # or: cd raycast && npm run dev
+```
 
-Note that you'll first need to complete the installation of Mozeidon components ([Mozeidon firefox add-on](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-firefox-addon), [Mozeidon native-app](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-native-app) and [Mozeidon CLI](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#mozeidon-cli)).
-
-Note that you cannot list **history items** with this Raycast extension : only **tabs**, **recently-closed tabs**, and **bookmarks**.
+First complete the component installation above (extension + native-app + CLI). The Raycast extension lists **tabs**, **recently-closed tabs**, and **bookmarks** (not history items).
 
 ![mozeidon-4](https://github.com/egovelox/mozeidon/assets/56078155/a3b8d378-7fe2-4062-9722-15b4cf7f9d6f)
 
-
-### MacOS swift app-agent
-
-**Not maintained anymore**.  
-
-Please now switch to [Swell](https://github.com/egovelox/swell) 🏄 🌊  
-
-**Not maintained anymore**.  
-
-If you ask for something faster than [Raycast](https://github.com/egovelox/mozeidon/tree/main?tab=readme-ov-file#raycast-extension) ( which I find quite slow to trigger the search list ),  
-you might take a look at this macOS app [mozeidon-macos-ui](https://github.com/egovelox/mozeidon-macos-ui)
-
-[🆕 Quick install of the mozeidon-macos-ui brew cask](https://github.com/egovelox/mozeidon-macos-ui?tab=readme-ov-file#homebrew)
-
-<img width="640" alt="mozeidon-macos-ui" src="https://github.com/user-attachments/assets/8590a296-3a4d-4287-b362-83804893710e" />
-
-
 ## Releases
 
-Various releases of the Mozeidon CLI can be found on the [releases page](https://github.com/egovelox/mozeidon/releases).
-
-Releases are managed with github-actions and [goreleaser](https://github.com/goreleaser/goreleaser).
-
-A release will be auto-published when a new git tag is pushed,
-e.g :
+CLI releases are on the [releases page](https://github.com/colangelo/mozeidon-z/releases),
+managed with GitHub Actions + [goreleaser](https://github.com/goreleaser/goreleaser). A release
+auto-publishes when a version tag is pushed:
 
 ```bash
-git clone https://github.com/egovelox/mozeidon.git && cd mozeidon;
-
-git tag -a v2.0.0 -m "A new mozeidon (CLI) release"
-
-git push origin v2.0.0
+git tag -a v5.0.0 -m "Mozeidon-Z 5.0.0"
+git push origin v5.0.0
 ```
 
 ## Local development setup
