@@ -14,7 +14,7 @@ import (
 	"github.com/egovelox/mozeidon/cmd/tabs"
 )
 
-var Version = "5.0.2"
+var Version = "5.0.3"
 
 var rootCmd = &cobra.Command{
 	Use:     "mozeidon-z",
