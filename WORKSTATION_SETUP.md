@@ -56,8 +56,10 @@ pgrep -fl mozeidon-z-messaging   # bridge process, spawned by Firefox
 - **`mozeidon-z-messaging`** — the bridge, now a **hard fork** of `egovelox/mozeidon-native-app`
   in its own repo (`colangelo/mozeidon-z-messaging`), shipped via `colangelo/homebrew-tap` and
   pulled automatically by `brew install colangelo/tap/mozeidon-z` via `depends_on`. We added
-  `--version`/`--help` + hardening but keep its **wire protocol frozen** (host name `mozeidon`,
-  IPC socket `mozeidon_native_app`), so it stays a drop-in transparent `{command, args}` proxy.
+  `--version`/`--help` + hardening. The **IPC socket** `mozeidon_native_app` stays frozen (the
+  native-app ↔ CLI contract); the **native-messaging host name** is `mozeidon_z` (renamed from
+  `mozeidon` in extension 5.0.4 — underscore, since hyphens are invalid). Still a transparent
+  `{command, args}` proxy.
 - **`mozeidon-macos-ui`** — a stock egovelox Swift menu-bar app (a Spotlight-style
   alternative front-end). **Never built here, never used** — superseded by Raycast. Removed
   2026-06-14 (see audit).
@@ -136,6 +138,25 @@ unrelated to this fork. Only the **native-app** belongs to the egovelox tap.
 ---
 
 ## Audit log
+
+### 2026-06-22 — extension 5.0.4: native-messaging host rename + about popup (AMO release)
+
+**Context**
+- Final consistency pass on the rebrand: the one remaining `mozeidon` identifier was the
+  native-messaging **host name** (extension `connectNative` + manifest `"name"`).
+
+**Actions**
+1. **Host name `mozeidon` → `mozeidon_z`** (extension `src/config.ts` `ADDON_NAME`, the
+   `setup-native-messaging` manifest `"name"`, file `mozeidon.json` → `mozeidon_z.json`).
+   **Underscore, not hyphen** — browsers require the native-app name to match `^\w+(\.\w+)*$`;
+   `mozeidon-z` is invalid and throws in `connectNative` (caught by a pre-AMO temp-add-on test, not
+   in production). The IPC socket `mozeidon_native_app` is unchanged (still the native-app ↔ CLI contract).
+2. **About popup** — clicking the toolbar icon now shows an about card (icon, name, live version from
+   `runtime.getManifest()`, links). New `firefox-addon/popup.{html,js}` + `default_popup`.
+3. **Bumped the extension to 5.0.4** and **submitted to AMO** (listed; web-ext lint 0/0/0) — first
+   extension change that genuinely required an AMO re-submit. Installs auto-update once approved.
+4. Corrected the AMO listing description (added History read/delete, tab groups, recently-closed
+   tabs; clarified it's terminal-driven, not an in-extension UI).
 
 ### 2026-06-22 — native-app forked + renamed to `mozeidon-z-messaging`
 
