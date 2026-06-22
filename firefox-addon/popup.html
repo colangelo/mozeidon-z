@@ -30,6 +30,27 @@
         color: #a9a7b3;
         font-variant-numeric: tabular-nums;
       }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 9px;
+        font-size: 11px;
+        color: #b9b7c1;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6b6975;
+      }
+      .dot.ok {
+        background: #3fb950;
+        box-shadow: 0 0 6px rgba(63, 185, 80, 0.55);
+      }
+      .dot.bad {
+        background: #f85149;
+      }
       .tagline {
         font-size: 12px;
         color: #cfcdd6;
@@ -68,6 +89,9 @@
       <img class="logo" src="icons/mazinger-Z-128.png" alt="Mozeidon-Z" />
       <div class="name">Mozeidon-Z</div>
       <div class="version" id="version">v…</div>
+      <div class="status">
+        <span class="dot" id="dot"></span><span id="status-text">Checking…</span>
+      </div>
       <div class="tagline" id="tagline">
         Control Firefox from the terminal — tabs, bookmarks, history &amp; groups.
       </div>
