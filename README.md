@@ -141,16 +141,16 @@ just setup-native-messaging
 
 **Option 2: Manual setup**
 
-Create `~/Library/Application Support/Mozilla/NativeMessagingHosts/mozeidon.json`:
+Create `~/Library/Application Support/Mozilla/NativeMessagingHosts/mozeidon_z.json` (the host name
+uses an underscore — native-messaging host names can't contain hyphens):
 
 ```json
 {
-  "name": "mozeidon",
-  "description": "Mozeidon native messaging host",
+  "name": "mozeidon_z",
+  "description": "Mozeidon-Z native messaging host",
   "path": "/opt/homebrew/bin/mozeidon-z-messaging",
   "type": "stdio",
   "allowed_extensions": [
-    "mozeidon-addon@egovelox.com",
     "mozeidon-z@a-layer.io"
   ]
 }
