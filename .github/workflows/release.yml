@@ -28,10 +28,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
       - name: Build & test
@@ -51,10 +51,10 @@ jobs:
           - { goos: linux,  goarch: amd64 }
           - { goos: linux,  goarch: arm64 }
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
       - name: Build
@@ -63,7 +63,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: '0'
         run: cd cli && go build -ldflags="-s -w" -o ../mozeidon-z-${{ matrix.goos }}-${{ matrix.goarch }} .
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
           path: mozeidon-z-*
@@ -77,14 +77,14 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: binaries-*
           merge-multiple: true
       - run: ls -la mozeidon-z-*
       - name: Generate checksums
         run: sha256sum mozeidon-z-* > checksums.txt && cat checksums.txt
-      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+      - uses: sigstore/cosign-installer@v3
       - name: Sign with cosign (keyless)
         run: |
           for file in mozeidon-z-*; do
@@ -92,7 +92,7 @@ jobs:
           done
           cosign sign-blob --yes --output-signature checksums.txt.sig --output-certificate checksums.txt.pem checksums.txt
       - name: Upload release assets
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.RELEASE_TAG }}
           files: |
