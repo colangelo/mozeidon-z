@@ -150,3 +150,15 @@ Source today: `main.go` (140 LOC) + `models/registration-info.go` + `models/regi
   it's public; we add MIT and credit egovelox. (Egovelox's own CLI/formula are MIT-declared.)
 - **`HOMEBREW_TAP_TOKEN`** must exist on the new repo too (same PAT, added as a secret on
   `colangelo/mozeidon-z-messaging`).
+
+## Addendum (2026-06-22, during implementation) — release pipeline switched ① → ②
+
+The release approach changed from **① evolve goreleaser** to **② mirror the `mozeidon-z` CLI's
+GitHub-Actions release ("HittyPing")**. Reason: goreleaser v2 deprecated Homebrew **formula**
+support (`brews:`) in favor of macOS-only **casks**. A cask can't be the `depends_on` target of the
+CLI **formula** and would drop Linux — so the native-app must stay a formula. ①'s sole advantage
+("goreleaser bumps the formula for free") is gone, so we drop goreleaser and reuse the CLI's proven
+pattern: a matrix build (`mozeidon-z-messaging-<os>-<arch>`) → cosign keyless → GitHub Release →
+`update-homebrew` job that substitutes a **committed formula template**
+(`packaging/mozeidon-z-messaging.rb`) into `colangelo/homebrew-tap`. Net result: one identical
+release mechanism across both repos for the runbook to document, and no deprecated dependency.

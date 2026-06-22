@@ -4,9 +4,9 @@
 
 **Goal:** Fork `egovelox/mozeidon-native-app` into `colangelo/mozeidon-z-messaging` — rebrand the binary, add `--version`/`--help`, harden the code, sign + ship via our Homebrew tap, and document how it works — then flip the `mozeidon-z` CLI to depend on it.
 
-**Architecture:** A ~230-line Go native-messaging host that proxies between the browser extension (stdin/stdout) and the CLI (Unix-socket IPC). We rename only the **binary** (`mozeidon-native-app` → `mozeidon-z-messaging`); the native-messaging **host name `"mozeidon"`** and the **IPC socket `mozeidon_native_app`** are frozen, so there is **no AMO change** and no contract break. Released by goreleaser on a `v*` tag.
+**Architecture:** A ~230-line Go native-messaging host that proxies between the browser extension (stdin/stdout) and the CLI (Unix-socket IPC). We rename only the **binary** (`mozeidon-native-app` → `mozeidon-z-messaging`); the native-messaging **host name `"mozeidon"`** and the **IPC socket `mozeidon_native_app`** are frozen, so there is **no AMO change** and no contract break. Released by GitHub Actions (matrix build + cosign + Homebrew tap bump) on a `v*` tag.
 
-**Tech Stack:** Go 1.26, `james-barrow/golang-ipc`, `rickypc/native-messaging-host`, `google/uuid`, goreleaser v2, cosign (keyless), GitHub Actions, Homebrew.
+**Tech Stack:** Go 1.26, `james-barrow/golang-ipc`, `rickypc/native-messaging-host`, `google/uuid`, GitHub Actions (matrix build), cosign (keyless), Homebrew.
 
 ## Global Constraints
 
@@ -14,7 +14,7 @@
 - **Frozen identifiers (NEVER change):** native-messaging host name **`"mozeidon"`**; IPC socket base name **`mozeidon_native_app`** (and the generated per-instance form `mozeidon_native_app_<pid>_<profileId8>`).
 - **Binary name everywhere:** **`mozeidon-z-messaging`**.
 - **Module path:** `github.com/colangelo/mozeidon-z-messaging`.
-- **License:** MIT. **Platforms:** darwin (universal) + linux (amd64, arm64); **no Windows**.
+- **License:** MIT. **Platforms:** darwin + linux, per-arch amd64 + arm64 (`mozeidon-z-messaging-<os>-<arch>`); **no Windows**.
 - **New repo location:** `~/_sync/dev/mozeidon-z-messaging`; GitHub `colangelo/mozeidon-z-messaging` (public); `origin` = colangelo, `upstream` = egovelox.
 - **Tap:** `colangelo/homebrew-tap`; secret `HOMEBREW_TAP_TOKEN` (a PAT with write to the tap) must exist on the new repo.
 - **stdout is sacred:** it is the native-messaging protocol channel; all logging goes to **stderr** (`log.Printf`).
@@ -586,128 +586,101 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
-### Task 7: goreleaser config (rename, tap, cosign, platforms)
+### Task 7: Remove goreleaser; add the Homebrew formula template
+
+> **Approach change (2026-06-22):** goreleaser v2 deprecated Homebrew **formula** support
+> (`brews:`) in favor of macOS-only **casks**. A cask can't be a `depends_on` target of the
+> `mozeidon-z` CLI **formula**, and would drop Linux. So we drop goreleaser entirely and mirror the
+> CLI's GitHub-Actions release (the "HittyPing" pattern): a build matrix + cosign + a committed
+> formula template the release job substitutes into the tap. One identical mechanism across both repos.
 
 **Files:**
-- Modify: `.goreleaser.yaml` (full replace)
+- Delete: `.goreleaser.yaml`
+- Create: `packaging/mozeidon-z-messaging.rb` (Homebrew formula template with placeholders)
+- Modify: `.gitignore` (ignore `dist/` if present)
 
 **Interfaces:**
-- Produces: a goreleaser config that builds `mozeidon-z-messaging` for darwin(universal)+linux, ldflags the version into `main.version`, cosign-signs all artifacts, and pushes a formula to `colangelo/homebrew-tap`.
+- Produces: `packaging/mozeidon-z-messaging.rb` — a multi-platform formula with `VERSION_PLACEHOLDER`
+  and four `*_PLACEHOLDER` sha256 slots that Task 8's `update-homebrew` job substitutes. No
+  `depends_on` (this binary IS the leaf dependency of the CLI formula).
 
-- [ ] **Step 1: Replace `.goreleaser.yaml`**
-
-```yaml
-version: 2
-project_name: mozeidon-z-messaging
-
-before:
-  hooks:
-    - go mod tidy
-
-builds:
-  - env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    ldflags:
-      - -s -w -X main.version={{ .Version }}
-
-universal_binaries:
-  - replace: true
-
-archives:
-  - formats: [tar.gz]
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-
-checksum:
-  name_template: 'checksums.txt'
-
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-      - '^chore:'
-
-signs:
-  - cmd: cosign
-    artifacts: all
-    output: true
-    args:
-      - sign-blob
-      - '--yes'
-      - '--output-signature=${signature}'
-      - '--output-certificate=${certificate}'
-      - '${artifact}'
-    signature: '${artifact}.sig'
-    certificate: '${artifact}.pem'
-
-release:
-  prerelease: auto
-
-brews:
-  - name: mozeidon-z-messaging
-    homepage: 'https://github.com/colangelo/mozeidon-z-messaging'
-    description: 'Mozeidon-Z native-messaging host — browser ⇄ CLI IPC bridge'
-    license: 'MIT'
-    repository:
-      owner: colangelo
-      name: homebrew-tap
-      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
-    commit_author:
-      name: github-actions[bot]
-      email: github-actions[bot]@users.noreply.github.com
-    install: |
-      bin.install "mozeidon-z-messaging"
-    test: |
-      assert_match "mozeidon-z-messaging", shell_output("#{bin}/mozeidon-z-messaging --version")
-```
-
-- [ ] **Step 2: Validate the config**
+- [ ] **Step 1: Delete the goreleaser config**
 
 ```bash
-go install github.com/goreleaser/goreleaser/v2@latest   # if not present
-goreleaser check
+git rm .goreleaser.yaml
 ```
-Expected: `1 configuration file(s) validated` / no errors. Fix any schema complaints inline (v2 key names).
 
-- [ ] **Step 3: Local snapshot build (no publish, no sign) to prove builds + brew templating**
+- [ ] **Step 2: Create `packaging/mozeidon-z-messaging.rb`**
+
+```ruby
+class MozeidonZMessaging < Formula
+  desc "Mozeidon-Z native-messaging host — browser ⇄ CLI IPC bridge"
+  homepage "https://github.com/colangelo/mozeidon-z-messaging"
+  version "VERSION_PLACEHOLDER"
+  license "MIT"
+
+  on_macos do
+    if Hardware::CPU.arm?
+      url "https://github.com/colangelo/mozeidon-z-messaging/releases/download/v#{version}/mozeidon-z-messaging-darwin-arm64"
+      sha256 "DARWIN_ARM64_PLACEHOLDER"
+    else
+      url "https://github.com/colangelo/mozeidon-z-messaging/releases/download/v#{version}/mozeidon-z-messaging-darwin-amd64"
+      sha256 "DARWIN_AMD64_PLACEHOLDER"
+    end
+  end
+
+  on_linux do
+    if Hardware::CPU.arm?
+      url "https://github.com/colangelo/mozeidon-z-messaging/releases/download/v#{version}/mozeidon-z-messaging-linux-arm64"
+      sha256 "LINUX_ARM64_PLACEHOLDER"
+    else
+      url "https://github.com/colangelo/mozeidon-z-messaging/releases/download/v#{version}/mozeidon-z-messaging-linux-amd64"
+      sha256 "LINUX_AMD64_PLACEHOLDER"
+    end
+  end
+
+  def install
+    binary = Dir["mozeidon-z-messaging-*"].first || "mozeidon-z-messaging"
+    bin.install binary => "mozeidon-z-messaging"
+  end
+
+  test do
+    assert_match "mozeidon-z-messaging", shell_output("#{bin}/mozeidon-z-messaging --version")
+  end
+end
+```
+
+- [ ] **Step 3: Ignore `dist/` (defensive; only matters if anyone runs a local build there)**
+
+Append `dist/` to `.gitignore` if not already present.
+
+- [ ] **Step 4: Verify the formula template is valid Ruby syntax**
 
 ```bash
-goreleaser release --snapshot --clean --skip=publish,sign
-ls dist/ | grep mozeidon-z-messaging
+ruby -c packaging/mozeidon-z-messaging.rb
 ```
-Expected: darwin universal + linux amd64/arm64 archives in `dist/`.
+Expected: `Syntax OK`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add .goreleaser.yaml
-git commit -m "ci: retarget goreleaser to mozeidon-z-messaging + our tap + cosign
+git add -A .goreleaser.yaml packaging/mozeidon-z-messaging.rb .gitignore
+git commit -m "ci: drop goreleaser (formula support deprecated); add Homebrew formula template
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 8: Release + CI workflows
+### Task 8: Release + CI workflows (HittyPing pattern)
 
 **Files:**
-- Modify: `.github/workflows/release.yml` (full replace)
+- Modify: `.github/workflows/release.yml` (full replace — matrix build + cosign + tap bump)
 - Create: `.github/workflows/ci.yml`
 
 **Interfaces:**
-- Produces: tag-`v*` → goreleaser release (signed + tap bump); push/PR → vet/build/test.
+- Consumes: `packaging/mozeidon-z-messaging.rb` (Task 7).
+- Produces: `v*` tag → signed GitHub Release (`mozeidon-z-messaging-<os>-<arch>` + `.sig`/`.pem` + checksums) and an updated `Formula/mozeidon-z-messaging.rb` in `colangelo/homebrew-tap`; push/PR → vet/build/test.
 
 - [ ] **Step 1: Replace `.github/workflows/release.yml`**
 
@@ -719,30 +692,134 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
 
-permissions:
-  contents: write
-  id-token: write   # cosign keyless
+permissions: read-all
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
-  goreleaser:
+  test:
+    name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - uses: sigstore/cosign-installer@v3
-      - uses: goreleaser/goreleaser-action@v6
+      - run: go build ./... && go test ./...
+
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: linux,  goarch: amd64 }
+          - { goos: linux,  goarch: arm64 }
+    steps:
+      - uses: actions/checkout@v4
         with:
-          distribution: goreleaser
-          version: '~> v2'
-          args: release --clean
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          go build -ldflags="-s -w -X main.version=${VERSION}" -o mozeidon-z-messaging-${{ matrix.goos }}-${{ matrix.goarch }} .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: mozeidon-z-messaging-*
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+      - run: ls -la mozeidon-z-messaging-*
+      - name: Generate checksums
+        run: sha256sum mozeidon-z-messaging-* > checksums.txt && cat checksums.txt
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign with cosign (keyless)
+        run: |
+          for file in mozeidon-z-messaging-*; do
+            cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "${file}"
+          done
+          cosign sign-blob --yes --output-signature checksums.txt.sig --output-certificate checksums.txt.pem checksums.txt
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ env.RELEASE_TAG }}
+          files: |
+            mozeidon-z-messaging-*
+            checksums.txt
+            checksums.txt.sig
+            checksums.txt.pem
+          generate_release_notes: true
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - name: Calculate checksums from published binaries
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          BASE_URL="https://github.com/colangelo/mozeidon-z-messaging/releases/download/${RELEASE_TAG}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          for t in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64; do
+            curl -sL "${BASE_URL}/mozeidon-z-messaging-${t}" | sha256sum | cut -d' ' -f1 > "${t}.sha"
+          done
+      - name: Update homebrew-tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          git clone https://x-access-token:${GH_TOKEN}@github.com/colangelo/homebrew-tap.git
+          cp packaging/mozeidon-z-messaging.rb homebrew-tap/Formula/mozeidon-z-messaging.rb
+          cd homebrew-tap
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/" Formula/mozeidon-z-messaging.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/$(cat ../darwin-arm64.sha)/" Formula/mozeidon-z-messaging.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/$(cat ../darwin-amd64.sha)/" Formula/mozeidon-z-messaging.rb
+          sed -i "s/LINUX_ARM64_PLACEHOLDER/$(cat ../linux-arm64.sha)/" Formula/mozeidon-z-messaging.rb
+          sed -i "s/LINUX_AMD64_PLACEHOLDER/$(cat ../linux-amd64.sha)/" Formula/mozeidon-z-messaging.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/mozeidon-z-messaging.rb
+          git diff --staged --quiet || git commit -m "Update mozeidon-z-messaging to v${VERSION}"
+          git push
 ```
 
 - [ ] **Step 2: Create `.github/workflows/ci.yml`**
@@ -771,11 +848,18 @@ jobs:
       - run: go test ./...
 ```
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Validate the workflow YAML parses**
+
+```bash
+python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/release.yml')); yaml.safe_load(open('.github/workflows/ci.yml')); print('YAML OK')"
+```
+Expected: `YAML OK`.
+
+- [ ] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/release.yml .github/workflows/ci.yml
-git commit -m "ci: GitHub Actions release (goreleaser+cosign) and PR build check
+git commit -m "ci: GitHub Actions release (matrix build + cosign + tap bump) and PR build check
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -847,9 +931,10 @@ go build -o mozeidon-z-messaging .   # needs Go 1.26+
 
 ## Releases
 
-A `v*` git tag triggers GitHub Actions → goreleaser builds darwin (universal) + linux (amd64/arm64),
-cosign-signs the artifacts (keyless), publishes a GitHub Release, and bumps the formula in
-`colangelo/homebrew-tap`.
+A `v*` git tag triggers GitHub Actions (`.github/workflows/release.yml`) → a matrix build of
+`mozeidon-z-messaging-<os>-<arch>` for darwin + linux (amd64/arm64), cosign keyless signing, a public
+GitHub Release, and an `update-homebrew` job that bumps `Formula/mozeidon-z-messaging.rb` in
+`colangelo/homebrew-tap`. (Same pattern as the `mozeidon-z` CLI.)
 
 ## License
 
@@ -882,8 +967,7 @@ Only the **binary filename** (`mozeidon-z-messaging`) is ours to rename.
 ```bash
 go build -o mozeidon-z-messaging .   # build
 go test ./...                        # test
-goreleaser check                     # validate release config
-goreleaser release --snapshot --clean --skip=publish,sign   # dry-run release
+go vet ./...                         # static check (matches CI)
 ```
 
 ## Release
@@ -1141,8 +1225,8 @@ brew uninstall egovelox/mozeidon/mozeidon-native-app 2>/dev/null || true
 ## Self-Review
 
 **Spec coverage:** repo bootstrap (T1) ✓; rename/Go/LICENSE (T2) ✓; `--version`/`--help` (T3) ✓;
-profileId guard (T4) ✓; end-of-stream + codec errors (T5) ✓; `UnmaskPermissions` (T6) ✓; goreleaser
-rename/tap/cosign/platforms/drop-`pro dev` (T7) ✓; release + CI workflows (T8) ✓; README/CLAUDE/
+profileId guard (T4) ✓; end-of-stream + codec errors (T5) ✓; `UnmaskPermissions` (T6) ✓; drop goreleaser +
+Homebrew formula template (T7) ✓; HittyPing release + CI workflows (T8) ✓; README/CLAUDE/
 ARCHITECTURE (T9) ✓; first release + secret + verify (T10) ✓; hub `depends_on` + manifest + docs
 (T11) ✓; e2e (T12) ✓. Scope cuts (Windows build, stale-file sweep, socket rename) intentionally
 absent.
