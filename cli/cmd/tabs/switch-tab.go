@@ -20,7 +20,7 @@ var SwitchTabCmd = &cobra.Command{
 		"\n" +
 		"e.g" +
 		"\n" +
-		"mozeidon tabs switch 1:100" +
+		"mozeidon-z tabs switch 1:100" +
 		"\n\n",
 	Args: cobra.ExactArgs(1),
 	Run: func(_ *cobra.Command, args []string) {

@@ -12,13 +12,13 @@ default:
 # Build everything (CLI + Firefox addon + Chrome addon)
 build-all: build-cli build-firefox build-chrome
 
-# Build CLI only (→ cli/mozeidon)
+# Build CLI only (→ cli/mozeidon-z)
 build-cli:
-    cd cli && go build
+    cd cli && go build -o mozeidon-z
 
 # Build and install CLI to ~/.local/bin
 install-cli:
-    cd cli && go build -o ~/.local/bin/mozeidon .
+    cd cli && go build -o ~/.local/bin/mozeidon-z .
 
 # Build Firefox addon (also copies the webextension-polyfill source map to silence a Firefox warning)
 build-firefox:
@@ -57,23 +57,23 @@ format-firefox:
 
 # Get open tabs
 tabs-get:
-    ./cli/mozeidon tabs get
+    ./cli/mozeidon-z tabs get
 
 # Get recently closed tabs
 tabs-closed:
-    ./cli/mozeidon tabs get --closed
+    ./cli/mozeidon-z tabs get --closed
 
 # Activate a tab (bring to foreground): just tabs-activate 3289:596
 tabs-activate ID:
-    ./cli/mozeidon tabs activate {{ID}}
+    ./cli/mozeidon-z tabs activate {{ID}}
 
 # Get bookmarks
 bookmarks:
-    ./cli/mozeidon bookmarks
+    ./cli/mozeidon-z bookmarks
 
 # Get history
 history:
-    ./cli/mozeidon history
+    ./cli/mozeidon-z history
 
 # ─────────────────────────────────────────────────────────────
 # Testing Commands
@@ -81,7 +81,7 @@ history:
 
 # Test CLI can connect to Firefox
 test-connection:
-    ./cli/mozeidon tabs get | head -c 200
+    ./cli/mozeidon-z tabs get | head -c 200
 
 # Open Firefox debugging page (for loading local extension)
 firefox-debug:

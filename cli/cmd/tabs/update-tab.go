@@ -21,15 +21,15 @@ var UpdateTabCmd = &cobra.Command{
 		"\n\n" +
 		"E.g to move tab 100 into the group 1757435983351019 :" +
 		"\n" +
-		"mozeidon tabs update --tab-id 100 --window-id 1 --group-id 1757435983351019" +
+		"mozeidon-z tabs update --tab-id 100 --window-id 1 --group-id 1757435983351019" +
 		"\n" +
 		"E.g to move tab 100 at the end of the window :" +
 		"\n" +
-		"mozeidon tabs update --tab-id 100 --window-id 1 --index -1" +
+		"mozeidon-z tabs update --tab-id 100 --window-id 1 --index -1" +
 		"\n" +
 		"E.g to unpin tab 100" +
 		"\n" +
-		"mozeidon tabs update --tab-id 100 --window-id 1 --pin=false" +
+		"mozeidon-z tabs update --tab-id 100 --window-id 1 --pin=false" +
 		"\n\n" +
 		"Note that you can't move pinned tabs to a position after any unpinned tabs," +
 		"\n" +

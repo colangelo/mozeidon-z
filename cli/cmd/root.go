@@ -14,10 +14,10 @@ import (
 	"github.com/egovelox/mozeidon/cmd/tabs"
 )
 
-var Version = "5.0.1"
+var Version = "5.0.2"
 
 var rootCmd = &cobra.Command{
-	Use:     "mozeidon",
+	Use:     "mozeidon-z",
 	Version: Version,
 	Short:   "A cli to interact with moz://a firefox or chrome web-browser",
 	Long: `

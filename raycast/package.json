@@ -18,9 +18,9 @@
       "type": "textfield",
       "required": false,
       "title": "Mozeidon CLI filepath",
-      "default": "/opt/homebrew/bin/mozeidon",
+      "default": "/opt/homebrew/bin/mozeidon-z",
       "description": "The filepath of mozeidon CLI binary",
-      "placeholder": "e.g /opt/homebrew/bin/mozeidon"
+      "placeholder": "e.g /opt/homebrew/bin/mozeidon-z"
     },
     {
       "name": "firefox",

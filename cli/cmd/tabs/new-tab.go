@@ -20,11 +20,11 @@ var NewTabCmd = &cobra.Command{
 		"\n" +
 		"e.g" +
 		"\n" +
-		"mozeidon tabs new https://mozilla.org" +
+		"mozeidon-z tabs new https://mozilla.org" +
 		"\n" +
 		"e.g" +
 		"\n" +
-		"mozeidon tabs new what is mozeidon add-on extension" +
+		"mozeidon-z tabs new what is mozeidon add-on extension" +
 		"\n\n",
 	Run: func(_ *cobra.Command, args []string) {
 		app, err := core.NewAppWithProfile(flags.ProfileID)

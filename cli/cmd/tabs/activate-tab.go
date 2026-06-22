@@ -18,7 +18,7 @@ var ActivateTabCmd = &cobra.Command{
 		"\n" +
 		"e.g" +
 		"\n" +
-		"mozeidon tabs activate 1:100" +
+		"mozeidon-z tabs activate 1:100" +
 		"\n\n",
 	Args: cobra.ExactArgs(1),
 	Run: func(_ *cobra.Command, args []string) {

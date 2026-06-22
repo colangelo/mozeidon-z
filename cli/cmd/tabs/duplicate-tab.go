@@ -17,7 +17,7 @@ var DuplicateTabCmd = &cobra.Command{
 		"\n\n" +
 		"e.g" +
 		"\n" +
-		"mozeidon tabs duplicate --tab-id 1 --window-id 1" +
+		"mozeidon-z tabs duplicate --tab-id 1 --window-id 1" +
 		"\n\n",
 	Args: cobra.NoArgs,
 	Run: func(_ *cobra.Command, args []string) {
