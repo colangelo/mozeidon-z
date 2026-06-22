@@ -94,6 +94,10 @@ You need to install 3 components:
 2. **[Mozeidon native-app](#mozeidon-native-app)** - Install via Homebrew
 3. **[Mozeidon CLI](#mozeidon-cli)** - Install via Homebrew or build from source
 
+> **Note:** the extension, CLI, and native-app version independently (they're separate pieces with
+> their own release cadences) — just install the latest of each. Their version numbers won't always
+> match, and that's expected; the protocol between them is stable.
+
 ### Quick Start (macOS)
 
 ```bash
