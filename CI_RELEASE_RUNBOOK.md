@@ -143,7 +143,8 @@ command gh secret set HOMEBREW_TAP_TOKEN --repo colangelo/mozeidon-z \
    formula template (base64 in the workflow), substitute version + the 4 sha256s, then
    clone → commit → **push to `colangelo/homebrew-tap`** using `HOMEBREW_TAP_TOKEN`.
 
-The formula `depends_on "colangelo/mozeidon-z-messaging"`, so `brew install` of the CLI also
+The formula `depends_on "colangelo/tap/mozeidon-z-messaging"` (the full user/tap/formula form —
+a 2-part `colangelo/mozeidon-z-messaging` won't resolve), so `brew install` of the CLI also
 pulls the native-messaging bridge.
 
 ### Cutting a release

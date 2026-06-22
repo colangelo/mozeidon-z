@@ -150,7 +150,7 @@ unrelated to this fork. Only the **native-app** belongs to the egovelox tap.
    socket name (`mozeidon_native_app`) and native-messaging host name (`"mozeidon"`) are unchanged —
    no AMO or extension change required.
 2. **CLI formula `depends_on`** updated from `"egovelox/mozeidon/mozeidon-native-app"` to
-   `"colangelo/mozeidon-z-messaging"` (in `.github/workflows/release.yml` `FORMULA_B64`).
+   `"colangelo/tap/mozeidon-z-messaging"` (user/tap/formula, in `.github/workflows/release.yml` `FORMULA_B64`).
 3. **`just setup-native-messaging`** manifest `"path"` updated to `/opt/homebrew/bin/mozeidon-z-messaging`.
 4. **Docs** — live-pipeline diagram, component inventory, and prose updated throughout to reference
    `mozeidon-z-messaging` (shipped via `colangelo/homebrew-tap`). Historical audit entries preserved as-is.
