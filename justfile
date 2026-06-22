@@ -119,8 +119,8 @@ package-firefox:
     XPI_NAME="mozeidon-z-${VERSION}.xpi"
     SRC_NAME="mozeidon-z-${VERSION}-source.zip"
     rm -f mozeidon-z-*.xpi mozeidon-z-*-source.zip
-    zip -r "$XPI_NAME" manifest.json dist/ icons/ -x "*.DS_Store"
-    zip -r "$SRC_NAME" src/ package.json package-lock.json webpack.config.js tsconfig.json manifest.json icons/ -x "*.DS_Store"
+    zip -r "$XPI_NAME" manifest.json dist/ icons/ popup.html popup.js -x "*.DS_Store"
+    zip -r "$SRC_NAME" src/ package.json package-lock.json webpack.config.js tsconfig.json manifest.json icons/ popup.html popup.js -x "*.DS_Store"
     echo "Created:"
     ls -la "$XPI_NAME" "$SRC_NAME"
 
@@ -137,7 +137,7 @@ submit-firefox: build-firefox package-firefox
     VERSION=$(grep '"version"' manifest.json | sed 's/.*: "\(.*\)".*/\1/')
     echo "Submitting mozeidon-z ${VERSION} to AMO (listed channel)…"
     rm -rf .amo-pkg && mkdir -p .amo-pkg
-    cp -r manifest.json dist icons .amo-pkg/
+    cp -r manifest.json dist icons popup.html popup.js .amo-pkg/
     # web-ext reads WEB_EXT_API_KEY / WEB_EXT_API_SECRET from the env (keeps them out of argv)
     npx --yes web-ext@latest sign \
       --source-dir=.amo-pkg --channel=listed \
