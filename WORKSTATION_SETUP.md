@@ -14,10 +14,10 @@ per-component detail lives in each component's own README/CLAUDE.
 ## Live pipeline (what actually runs)
 
 ```
-Firefox extension          native-app (Homebrew)              CLI                       front-end
-mozeidon-z@a-layer.io  ──►  /opt/homebrew/bin/            ──►  ~/.local/bin/mozeidon  ──►  Raycast
-(this repo's firefox-addon)  mozeidon-native-app 4.0.0          5.0.0 (built from cli/)     (raycast/ ext)
-   v5.0.0                    (native-messaging bridge)          (this repo's build)
+Firefox extension          native-app (Homebrew)              CLI (Homebrew tap)        front-end
+mozeidon-z@a-layer.io  ──►  /opt/homebrew/bin/            ──►  /opt/homebrew/bin/     ──►  Raycast
+(this repo's firefox-addon)  mozeidon-native-app 4.0.0          mozeidon-z 5.0.2           (raycast/ ext)
+   v5.0.0                    (native-messaging bridge)          (colangelo/tap)
 ```
 
 - The browser talks to a **native-messaging host** declared at
@@ -25,16 +25,17 @@ mozeidon-z@a-layer.io  ──►  /opt/homebrew/bin/            ──►  ~/.lo
   at the Homebrew `mozeidon-native-app`. Allowed extensions:
   `mozeidon-z@a-layer.io`, `mozeidon@anthropic.github.io`, `mozeidon-dev@ac.local`
   (written by `just setup-native-messaging`).
-- The native app shells out to the **CLI on `PATH`**, which is the locally-built fork
-  binary at `~/.local/bin/mozeidon` (built via `just install-cli`).
+- The native app shells out to the **CLI on `PATH`**, which is the Homebrew-tap binary
+  `mozeidon-z` at `/opt/homebrew/bin/mozeidon-z` (`brew install colangelo/tap/mozeidon-z`).
+  For local CLI work, `just install-cli` builds a dev `mozeidon-z` into `~/.local/bin/` instead.
 - **Raycast** is the primary front-end (extension under `raycast/`, dev-installed). It
   calls the same CLI.
 
 End-to-end smoke test:
 
 ```bash
-mozeidon --version       # → mozeidon version 5.0.0 (fork build)
-mozeidon tabs get        # streams JSON of open Firefox tabs (needs Firefox open w/ ext)
+mozeidon-z --version     # → mozeidon-z version 5.0.2 (Homebrew tap)
+mozeidon-z tabs get      # streams JSON of open Firefox tabs (needs Firefox open w/ ext)
 pgrep -fl mozeidon-native-app   # bridge process, spawned by Firefox
 ```
 
@@ -44,7 +45,7 @@ pgrep -fl mozeidon-native-app   # bridge process, spawned by Firefox
 
 | Component | Source of truth | Where it lives | Version | Notes |
 |---|---|---|---|---|
-| **CLI** | **here** (`cli/`) | `~/.local/bin/mozeidon` (on `PATH`) | 5.0.0 | Built locally via `just install-cli`. This is the one that runs. |
+| **CLI** | **here** (`cli/`); shipped via **Homebrew tap** `colangelo/tap` | `/opt/homebrew/bin/mozeidon-z` (on `PATH`) | 5.0.2 | `brew install colangelo/tap/mozeidon-z` — released by GitHub Actions (see [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md)). Dev builds: `just install-cli` → `~/.local/bin/mozeidon-z`. |
 | **Firefox extension** | **here** (`firefox-addon/`) | loaded in Firefox as `mozeidon-z@a-layer.io` | 5.0.0 | Built `.xpi` is a gitignored artifact; release via `just submit-firefox` (AMO, auto-updates installs). |
 | **Chrome extension** | **here** (`chrome-addon/`) | not loaded | 5.0.0 | `chrome-addon/src/` is generated from `firefox-addon/src/` (verbatim copy by `just build-chrome`) and gitignored. Kept in sync for completeness; not in active use. |
 | **native-app** | **Homebrew** `egovelox/mozeidon` tap | `/opt/homebrew/bin/mozeidon-native-app` | 4.0.0 | **Not built here.** The actual browser bridge. Installed *on request* (a `brew leaves` leaf). Keep it. |
@@ -111,7 +112,9 @@ of conflict resolution for ~zero gain. Don't.
 
 | Task | Command |
 |---|---|
-| Rebuild + install the CLI | `just install-cli` (→ `~/.local/bin/mozeidon`) |
+| Install / upgrade the released CLI | `brew install colangelo/tap/mozeidon-z` (or `brew upgrade mozeidon-z`) |
+| Rebuild + install the CLI (dev) | `just install-cli` (→ `~/.local/bin/mozeidon-z`) |
+| Cut a CLI release | bump `cli/cmd/root.go` `var Version`, tag `vX.Y.Z`, `git push origin vX.Y.Z` — see [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md) |
 | Rebuild the Firefox bundle | `just build-firefox` |
 | Release a new Firefox version to AMO | `just submit-firefox` (bump `firefox-addon/manifest.json` first; auto-updates installs) |
 | Rebuild everything | `just build-all` |
@@ -120,15 +123,38 @@ of conflict resolution for ~zero gain. Don't.
 
 ### PATH-shadow gotcha
 
-The CLI you actually run is the **local build** at `~/.local/bin/mozeidon`. If you ever
-`brew install egovelox/mozeidon/mozeidon`, Homebrew installs a *second* CLI at
-`/opt/homebrew/bin/mozeidon` that is **shadowed** by the local build (and triggers a brew
-"shadowed by" warning). Don't install the brew CLI formula — the fork build is the source
-of truth. Only the **native-app** belongs to Homebrew.
+The CLI you actually run is the **Homebrew-tap build** `mozeidon-z` at `/opt/homebrew/bin/mozeidon-z`
+(`brew install colangelo/tap/mozeidon-z`) — that's the source of truth now. `just install-cli` builds a
+*dev* `mozeidon-z` into `~/.local/bin/`; if `~/.local/bin` precedes `/opt/homebrew/bin` on `PATH`, that
+dev build **shadows** brew's. So after a release, `brew upgrade mozeidon-z` and remove any stale
+`~/.local/bin/mozeidon-z` (or knowingly let the dev build win). Do **not** `brew install
+egovelox/mozeidon/mozeidon` — that's the upstream-named CLI (`mozeidon`, no `-z`), a different binary
+unrelated to this fork. Only the **native-app** belongs to the egovelox tap.
 
 ---
 
 ## Audit log
+
+### 2026-06-22 — public distribution via Homebrew tap + CLI rename
+
+**Findings**
+- The CLI shipped only as a local `just install-cli` build (`~/.local/bin/mozeidon`) — no one-command
+  install for a fresh machine — and Woodpecker's old release steps published to tailnet-only Gitea
+  Releases, which aren't publicly installable.
+
+**Actions**
+1. **Renamed the CLI command/binary** `mozeidon` → `mozeidon-z` (cosmetic; the native-messaging
+   plumbing stays `mozeidon` / `mozeidon_native_app`, so **no AMO change**). Bumped CLI to **5.0.2**.
+2. **Moved releases to GitHub Actions** (`.github/workflows/release.yml`, HittyPing pattern): a `v*`
+   tag on GitHub `origin` → cross-compile (darwin/linux × arm64/amd64) → cosign-sign → **public
+   GitHub Release** → auto-bump the formula in **`colangelo/homebrew-tap`** (needs the
+   `HOMEBREW_TAP_TOKEN` secret). Woodpecker is now **build-CI only** (release steps removed).
+3. **Install is now** `brew install colangelo/tap/mozeidon-z` (also pulls the `mozeidon-native-app`
+   bridge via `depends_on`). Removed the orphaned `~/.local/bin/mozeidon` (old 4.1.1 build).
+4. **Docs** — rewrote [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md) for the GitHub Actions +
+   Homebrew flow (one-time prereqs, the `HOMEBREW_TAP_TOKEN` secret, the `gh --repo` gotcha, and the
+   rerun-on-failure fix for a red Homebrew step), and updated this file's live-pipeline / inventory /
+   maintenance / PATH-shadow sections.
 
 ### 2026-06-16 — Mozeidon-Z 5.0.0 + housekeeping
 
