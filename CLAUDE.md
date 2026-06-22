@@ -139,28 +139,32 @@ Tab IDs use `windowId:tabId` format. Bookmark folder paths start and end with `/
 3. Load temporary extension: Firefox `about:debugging` → Load Temporary Add-on → select `firefox-addon/manifest.json`
 4. Test: `./cli/mozeidon tabs get`
 
-## CI / Releases (Woodpecker)
+## CI / Releases
 
-CI runs on **Woodpecker** (`ci.cat-bluegill.ts.net`), driven by `.woodpecker.yml`. The Gitea
-repo `A-Layer/mozeidon-z` is activated there; pushes/tags fire pipelines.
+Two systems, two jobs:
 
-📖 **Full, portable runbook (setup, secrets, releasing, debugging, gotchas):
-[`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md)** — reusable across all our Gitea+Woodpecker repos.
-The summary below is the quick reference.
+- **Build CI → Woodpecker** (`ci.cat-bluegill.ts.net`, `.woodpecker.yml`): on push/PR/manual,
+  builds the CLI (`golang:1.24`) + both add-ons (`node:20`) in parallel — mirrors `just build-all`.
+  Repo `A-Layer/mozeidon-z` is activated there. Full Woodpecker runbook (auth, debug, gotchas):
+  [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md). (Woodpecker `${...}` gotcha: it expands
+  `${...}` across the *whole* config incl. comments — keep shell param-expansions out.)
+- **Release → GitHub Actions** (`.github/workflows/release.yml`, the HittyPing pattern): on a `v*`
+  tag pushed to **GitHub `origin`**, it cross-compiles the CLI (darwin/linux × arm64/amd64),
+  cosign-signs, publishes a **public GitHub Release**, and auto-bumps the Homebrew formula in
+  `colangelo/homebrew-tap` (needs the `HOMEBREW_TAP_TOKEN` repo secret). Install:
+  `brew install colangelo/tap/mozeidon-z` (auto-installs the `mozeidon-native-app` bridge).
 
-- **Build pipeline** (`.woodpecker.yml`): mirrors `just build-all` — builds the CLI (`golang:1.24`)
-  and both add-ons (`node:20`, chrome src synced from firefox-addon) in parallel on
-  push/PR/manual. Raycast is excluded (its `ray build` needs the Raycast toolchain/login).
-- **Release-on-tag → Gitea Releases (working):** on a `v*` tag, `release-build` cross-compiles
-  the CLI (darwin/linux × arm64/amd64) and `release-publish` creates the Gitea Release and uploads
-  the binaries, authed via the `gitea_token` repo secret — a least-priv `write:repository` PAT
-  stored in 1Password `AC-DevOps` (`gitea - woodpecker mozeidon-z token`). Cut a release with:
-  `git tag -a v5.0.1 -m "…" && git push internal v5.0.1`.
-- **Woodpecker gotcha:** Woodpecker expands `${...}` across the *whole* config (commands AND
-  comments) and errors ("unable to parse variable name") on anything it can't parse — keep shell
-  parameter-expansions like `${var%/*}` out of `.woodpecker.yml`; use literals or `$VAR`.
-- The old GitHub-Actions goreleaser path (`.github/workflows/release.yml`) is **deprecated**;
-  disable **Gitea Actions** for the repo so it doesn't also pick up that workflow.
+**Cut a release:**
+```bash
+# bump cli/cmd/root.go `var Version`, commit, then:
+git tag -a v5.0.x -m "Mozeidon-Z 5.0.x"
+git push origin v5.0.x        # GitHub origin → triggers the release workflow
+```
+
+- **Tags go to `origin` (GitHub), not `internal` (Gitea).** And **Gitea Actions must stay disabled**
+  for the repo, or it will also try to run `.github/workflows/release.yml` on the mirror and fail.
+- The CLI command/binary is **`mozeidon-z`**; the native-messaging plumbing stays `mozeidon` /
+  `mozeidon_native_app` (fixed by the egovelox native-app), so the rename needed **no AMO change**.
 - Firefox extension distribution is unchanged: AMO via `just submit-firefox` (see below).
 
 ### Checking CI status (woodpecker-cli)

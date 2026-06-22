@@ -97,22 +97,19 @@ You need to install 3 components:
 ### Quick Start (macOS)
 
 ```bash
-# 1. Install the native-messaging bridge (Homebrew)
-brew install egovelox/mozeidon/mozeidon-native-app
+# 1. Install the Mozeidon-Z CLI (Homebrew tap; also pulls the mozeidon-native-app bridge)
+brew install colangelo/tap/mozeidon-z
 
-# 2. Build + install the Mozeidon-Z CLI from this repo
-git clone https://github.com/colangelo/mozeidon-z.git
-cd mozeidon-z && just install-cli      # → ~/.local/bin/mozeidon
+# 2. Register native messaging (see "Configure Native Messaging" below) — e.g. clone the
+#    repo and run `just setup-native-messaging`, or write the manifest manually.
 
-# 3. Register native messaging (writes the manifest for you)
-just setup-native-messaging
-
-# 4. Install the Mozeidon-Z extension from AMO, restart Firefox, then test
-mozeidon tabs get
+# 3. Install the Mozeidon-Z extension from AMO, restart Firefox, then test
+mozeidon-z tabs get
 ```
 
-> Do **not** `brew install` the CLI — the Mozeidon-Z CLI is built from this repo. Installing a
-> brew `mozeidon` would put a second binary on `PATH` that shadows your local build.
+> Prefer building from source? `git clone https://github.com/colangelo/mozeidon-z.git && cd
+> mozeidon-z && just install-cli` (→ `~/.local/bin/mozeidon-z`), plus
+> `brew install egovelox/mozeidon/mozeidon-native-app` for the bridge.
 
 ## Mozeidon-Z Firefox Extension
 
@@ -180,17 +177,18 @@ mozeidon tabs activate 3289:596
 mozeidon tabs pick
 ```
 
-### Build & install (this repo)
+### Install (Homebrew) or build from source
 
 ```bash
+# Homebrew tap (recommended) — also installs the mozeidon-native-app bridge
+brew install colangelo/tap/mozeidon-z
+
+# …or build from this repo:
 git clone https://github.com/colangelo/mozeidon-z.git
-cd mozeidon-z && just install-cli      # builds cli/ → ~/.local/bin/mozeidon
+cd mozeidon-z && just install-cli      # builds cli/ → ~/.local/bin/mozeidon-z
 ```
 
-Or build in place: `cd cli && go build` (→ `cli/mozeidon`).
-
-> The Mozeidon-Z CLI is **not** distributed via Homebrew — build it from this repo. Only the
-> `mozeidon-native-app` bridge comes from brew.
+Or build in place: `cd cli && go build -o mozeidon-z` (→ `cli/mozeidon-z`).
 
 ## Examples 
 

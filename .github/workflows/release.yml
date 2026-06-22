@@ -1,40 +1,139 @@
-name: goreleaser
+name: Release
+
+# Mozeidon-Z CLI release: tag v* → build, sign, publish to GitHub Releases, and
+# bump the Homebrew formula in colangelo/homebrew-tap. (HittyPing pattern.)
+# NOTE: Gitea Actions must be DISABLED for this repo so it doesn't also try to run
+# this workflow on the internal mirror. Push v* tags to the GitHub `origin` remote.
 
 on:
   push:
-    # run only against tags
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v5.0.2)'
+        required: true
+        type: string
 
-permissions:
-  contents: write
-  # packages: write
-  # issues: write
+permissions: read-all
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
-  goreleaser:
+  test:
+    name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          fetch-depth: 0
-      - run: git fetch --force --tags
-      - uses: actions/setup-go@v3
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '>=1.21.1'
-          cache: true
-          cache-dependency-path: |
-             cli/go.sum
-      # More assembly might be required: Docker logins, GPG, etc. It all depends
-      # on your needs.
-      - uses: goreleaser/goreleaser-action@v5
+          go-version: 'stable'
+      - name: Build & test
+        run: cd cli && go build ./... && go test ./...
+
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: linux,  goarch: amd64 }
+          - { goos: linux,  goarch: arm64 }
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro':
-          distribution: goreleaser
-          version: ${{ env.GITHUB_REF_NAME }}
-          args: release --clean -f ./cli/.goreleaser.yaml
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 'stable'
+      - name: Build
         env:
-          GITHUB_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro'
-          # distribution:
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: cd cli && go build -ldflags="-s -w" -o ../mozeidon-z-${{ matrix.goos }}-${{ matrix.goarch }} .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: mozeidon-z-*
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+      - run: ls -la mozeidon-z-*
+      - name: Generate checksums
+        run: sha256sum mozeidon-z-* > checksums.txt && cat checksums.txt
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+      - name: Sign with cosign (keyless)
+        run: |
+          for file in mozeidon-z-*; do
+            cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "${file}"
+          done
+          cosign sign-blob --yes --output-signature checksums.txt.sig --output-certificate checksums.txt.pem checksums.txt
+      - name: Upload release assets
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        with:
+          name: ${{ env.RELEASE_TAG }}
+          files: |
+            mozeidon-z-*
+            checksums.txt
+            checksums.txt.sig
+            checksums.txt.pem
+          generate_release_notes: true
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # base64 of Formula/mozeidon-z.rb template with PLACEHOLDERs (avoids YAML/heredoc issues)
+      FORMULA_B64: Y2xhc3MgTW96ZWlkb25aIDwgRm9ybXVsYQogIGRlc2MgIkNvbnRyb2wgRmlyZWZveC9DaHJvbWUgZnJvbSB0aGUgdGVybWluYWwg4oCUIE1vemVpZG9uLVogQ0xJIgogIGhvbWVwYWdlICJodHRwczovL2dpdGh1Yi5jb20vY29sYW5nZWxvL21vemVpZG9uLXoiCiAgdmVyc2lvbiAiVkVSU0lPTl9QTEFDRUhPTERFUiIKICBsaWNlbnNlICJNSVQiCgogIGRlcGVuZHNfb24gImVnb3ZlbG94L21vemVpZG9uL21vemVpZG9uLW5hdGl2ZS1hcHAiCgogIG9uX21hY29zIGRvCiAgICBpZiBIYXJkd2FyZTo6Q1BVLmFybT8KICAgICAgdXJsICJodHRwczovL2dpdGh1Yi5jb20vY29sYW5nZWxvL21vemVpZG9uLXovcmVsZWFzZXMvZG93bmxvYWQvdiN7dmVyc2lvbn0vbW96ZWlkb24tei1kYXJ3aW4tYXJtNjQiCiAgICAgIHNoYTI1NiAiREFSV0lOX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vbW96ZWlkb24tei9yZWxlYXNlcy9kb3dubG9hZC92I3t2ZXJzaW9ufS9tb3plaWRvbi16LWRhcndpbi1hbWQ2NCIKICAgICAgc2hhMjU2ICJEQVJXSU5fQU1ENjRfUExBQ0VIT0xERVIiCiAgICBlbmQKICBlbmQKCiAgb25fbGludXggZG8KICAgIGlmIEhhcmR3YXJlOjpDUFUuYXJtPwogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vbW96ZWlkb24tei9yZWxlYXNlcy9kb3dubG9hZC92I3t2ZXJzaW9ufS9tb3plaWRvbi16LWxpbnV4LWFybTY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vbW96ZWlkb24tei9yZWxlYXNlcy9kb3dubG9hZC92I3t2ZXJzaW9ufS9tb3plaWRvbi16LWxpbnV4LWFtZDY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FNRDY0X1BMQUNFSE9MREVSIgogICAgZW5kCiAgZW5kCgogIGRlZiBpbnN0YWxsCiAgICBiaW5hcnkgPSBEaXJbIm1vemVpZG9uLXotKiJdLmZpcnN0IHx8ICJtb3plaWRvbi16IgogICAgYmluLmluc3RhbGwgYmluYXJ5ID0+ICJtb3plaWRvbi16IgogIGVuZAoKICB0ZXN0IGRvCiAgICBhc3NlcnRfbWF0Y2ggIm1vemVpZG9uLXogdmVyc2lvbiIsIHNoZWxsX291dHB1dCgiI3tiaW59L21vemVpZG9uLXogLS12ZXJzaW9uIikKICBlbmQKZW5kCg==
+    steps:
+      - name: Calculate checksums
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          BASE_URL="https://github.com/colangelo/mozeidon-z/releases/download/${RELEASE_TAG}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          for t in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64; do
+            curl -sL "${BASE_URL}/mozeidon-z-${t}" | sha256sum | cut -d' ' -f1 > "${t}.sha"
+          done
+      - name: Update homebrew-tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          git clone https://x-access-token:${GH_TOKEN}@github.com/colangelo/homebrew-tap.git
+          cd homebrew-tap
+          echo "$FORMULA_B64" | base64 -d > Formula/mozeidon-z.rb
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/" Formula/mozeidon-z.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/$(cat ../darwin-arm64.sha)/" Formula/mozeidon-z.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/$(cat ../darwin-amd64.sha)/" Formula/mozeidon-z.rb
+          sed -i "s/LINUX_ARM64_PLACEHOLDER/$(cat ../linux-arm64.sha)/" Formula/mozeidon-z.rb
+          sed -i "s/LINUX_AMD64_PLACEHOLDER/$(cat ../linux-amd64.sha)/" Formula/mozeidon-z.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/mozeidon-z.rb
+          git diff --staged --quiet || git commit -m "Update mozeidon-z to v${VERSION}"
+          git push

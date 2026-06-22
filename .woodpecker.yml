@@ -1,8 +1,8 @@
-# Woodpecker CI for Mozeidon-Z.
-# Build (push/PR/manual): mirrors `just build-all` — CLI + both add-ons, in parallel.
-# Release (tag v*): cross-compile the CLI and publish a Gitea Release with the binaries.
-# Raycast is excluded (its `ray build` needs the Raycast toolchain/login).
-# Every step sets depends_on so the DAG is explicit.
+# Woodpecker CI for Mozeidon-Z — build verification only (push/PR/manual).
+# Releases are handled by GitHub Actions (.github/workflows/release.yml → public
+# GitHub Releases + Homebrew tap). Mirrors `just build-all`; Raycast is excluded
+# (its `ray build` needs the Raycast toolchain). Each step sets depends_on so the
+# DAG is explicit; the three builds run in parallel.
 
 steps:
   - name: build-cli
@@ -11,7 +11,7 @@ steps:
     when:
       - event: [push, pull_request, manual]
     commands:
-      - cd cli && go build
+      - cd cli && go build -o mozeidon-z
 
   - name: build-firefox
     image: node:20
@@ -31,50 +31,3 @@ steps:
       - rm -rf chrome-addon/src
       - cp -r firefox-addon/src chrome-addon/src
       - cd chrome-addon && npm ci && npm run build
-
-  # ── Release: tag v* → cross-compile CLI → Gitea Release with binaries ──────────
-  - name: release-build
-    image: golang:1.24
-    depends_on: []
-    when:
-      - event: tag
-        ref: refs/tags/v*
-    # NB: Woodpecker expands dollar-brace expressions across the whole config
-    # (commands AND comments) before the shell runs, and rejects ones it can't
-    # parse. So avoid them here: build each target with literal GOOS/GOARCH.
-    commands:
-      - mkdir -p dist-release
-      - (cd cli && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-darwin-arm64 .)
-      - (cd cli && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-darwin-amd64 .)
-      - (cd cli && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-linux-arm64 .)
-      - (cd cli && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../dist-release/mozeidon-linux-amd64 .)
-      - ls -la dist-release
-
-  - name: release-publish
-    image: alpine:3.20
-    depends_on:
-      - release-build
-    when:
-      - event: tag
-        ref: refs/tags/v*
-    environment:
-      GITEA_TOKEN:
-        from_secret: gitea_token
-    commands:
-      - apk add --no-cache curl jq
-      - 'BASE="https://gitea.cat-bluegill.ts.net/api/v1/repos/$CI_REPO"'
-      - 'AUTH="Authorization: token $GITEA_TOKEN"'
-      # create the release for this tag, or reuse it if it already exists (re-runs)
-      - |
-        RID=$(curl -sf -X POST "$BASE/releases" -H "$AUTH" -H "Content-Type: application/json" \
-              -d "{\"tag_name\":\"$CI_COMMIT_TAG\",\"name\":\"$CI_COMMIT_TAG\"}" | jq -r .id) \
-          || RID=$(curl -sf "$BASE/releases/tags/$CI_COMMIT_TAG" -H "$AUTH" | jq -r .id)
-      - test -n "$RID" && test "$RID" != "null"
-      - echo "release id=$RID"
-      - |
-        for f in dist-release/*; do
-          echo "uploading $(basename "$f")"
-          curl -sf -X POST "$BASE/releases/$RID/assets?name=$(basename "$f")" \
-            -H "$AUTH" -F "attachment=@$f" -o /dev/null
-        done
-      - echo "release $CI_COMMIT_TAG published"
