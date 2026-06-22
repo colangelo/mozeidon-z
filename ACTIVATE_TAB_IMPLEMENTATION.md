@@ -26,7 +26,7 @@ Implement an `activate-tab` command that:
 mozeidon CLI
     │ {command: "activate-tab", args: "tabId"}
     ▼
-mozeidon-native-app (no changes needed - transparent proxy)
+mozeidon-z-messaging (no changes needed - transparent proxy)
     │ forwards message via native messaging
     ▼
 Mozeidon Firefox addon (NEW: handle activate-tab)
@@ -188,7 +188,7 @@ func ActivateTab(tabId int) error {
 
 ### 3. Native App Changes
 
-**None required.** The mozeidon-native-app is a transparent proxy that forwards any `{command, args}` message to the Firefox addon.
+**None required.** The mozeidon-z-messaging bridge is a transparent proxy that forwards any `{command, args}` message to the Firefox addon.
 
 ## Why Two WebExtensions API Calls?
 
@@ -312,7 +312,7 @@ All repositories are siblings in the same parent directory:
 ```
 firefox-ai/
 ├── mozeidon/              # This repo - Firefox addon + CLI (all changes here)
-├── mozeidon-native-app/   # Native messaging proxy (no changes needed)
+├── mozeidon-z-messaging/  # Native messaging proxy (no changes needed)
 └── alfred-firefox/        # Reference implementation
 ```
 

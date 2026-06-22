@@ -16,7 +16,7 @@ CLI (Go)  →  Native App (IPC)  →  Browser Extension (Native Messaging)  → 
 Three components must work together:
 1. **CLI** (`/cli`) - Go binary using Cobra, communicates via IPC to `mozeidon_native_app`
 2. **Browser Extensions** (`/firefox-addon`, `/chrome-addon`) - TypeScript WebExtensions that receive commands and call browser APIs
-3. **Native App** (separate repo: `mozeidon-native-app`) - IPC broker between CLI and extension
+3. **Native App** (separate repo: `mozeidon-z-messaging`) - IPC broker between CLI and extension
 
 The CLI sends `Command` structs (command name + args string) via IPC. Extensions dispatch commands through `handler.ts` to service files (`tabs.ts`, `bookmarks.ts`, etc.) which call WebExtension APIs. Responses flow back through the same path.
 
@@ -152,7 +152,7 @@ Two systems, two jobs:
   tag pushed to **GitHub `origin`**, it cross-compiles the CLI (darwin/linux × arm64/amd64),
   cosign-signs, publishes a **public GitHub Release**, and auto-bumps the Homebrew formula in
   `colangelo/homebrew-tap` (needs the `HOMEBREW_TAP_TOKEN` repo secret). Install:
-  `brew install colangelo/tap/mozeidon-z` (auto-installs the `mozeidon-native-app` bridge).
+  `brew install colangelo/tap/mozeidon-z` (auto-installs the `mozeidon-z-messaging` bridge).
 
 **Cut a release:**
 ```bash
@@ -195,7 +195,7 @@ woodpecker-cli pipeline create A-Layer/mozeidon-z --branch main # fresh manual r
 **Mozeidon-Z** (`colangelo/mozeidon-z`) — a standalone hard fork of
 [`egovelox/mozeidon`](https://github.com/egovelox/mozeidon) (`upstream` remote, kept only as an
 occasional cherry-pick source). The CLI, both extensions, and the Raycast extension are built
-from here; the native app comes from the separate `mozeidon-native-app` repo (or Homebrew).
+from here; the native app comes from the separate `mozeidon-z-messaging` repo (or Homebrew).
 
 **After changing the source, rebuild the affected piece — and note the loaded browser extension
 does NOT auto-update, you must reload it:**
@@ -206,7 +206,7 @@ does NOT auto-update, you must reload it:**
 | `firefox-addon/**` | `just build-firefox` | **dev:** `about:debugging` → Load Temporary Add-on. **release:** bump `manifest.json` version → `just package-firefox` → submit to AMO ([Mozeidon-Z](https://addons.mozilla.org/firefox/addon/mozeidon-z/)) → installs auto-update (release Firefox won't load an unsigned `.xpi`) |
 | `chrome-addon/**` | `just build-chrome && just package-chrome` | reload at `chrome://extensions` |
 | `raycast/**` | `just build-raycast` | reload the extension in Raycast |
-| native app | from `mozeidon-native-app` / Homebrew | — |
+| native app | from `mozeidon-z-messaging` / Homebrew | — |
 
 Build-only/devDependency changes (e.g. a webpack bump) don't change runtime behaviour, so no
 reload is needed for those.

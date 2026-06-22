@@ -97,7 +97,7 @@ You need to install 3 components:
 ### Quick Start (macOS)
 
 ```bash
-# 1. Install the Mozeidon-Z CLI (Homebrew tap; also pulls the mozeidon-native-app bridge)
+# 1. Install the Mozeidon-Z CLI (Homebrew tap; also pulls the mozeidon-z-messaging bridge)
 brew install colangelo/tap/mozeidon-z
 
 # 2. Register native messaging (see "Configure Native Messaging" below) — e.g. clone the
@@ -109,7 +109,7 @@ mozeidon-z tabs get
 
 > Prefer building from source? `git clone https://github.com/colangelo/mozeidon-z.git && cd
 > mozeidon-z && just install-cli` (→ `~/.local/bin/mozeidon-z`), plus
-> `brew install egovelox/mozeidon/mozeidon-native-app` for the bridge.
+> `brew install colangelo/tap/mozeidon-z-messaging` for the bridge.
 
 ## Mozeidon-Z Firefox Extension
 
@@ -121,15 +121,14 @@ Installs auto-update once a new version is approved on AMO (publish with `just s
 
 ## Mozeidon native-app
 
-The [mozeidon native-app](https://github.com/egovelox/mozeidon-native-app) is an IPC broker that connects the CLI to the browser extension.
+The mozeidon native-app — packaged as [`mozeidon-z-messaging`](https://github.com/colangelo/mozeidon-z-messaging) (a hard fork of [`egovelox/mozeidon-native-app`](https://github.com/egovelox/mozeidon-native-app)) — is an IPC broker that connects the CLI to the browser extension.
 
 **Install via Homebrew (macOS/Linux):**
 ```bash
-brew tap egovelox/homebrew-mozeidon
-brew install egovelox/mozeidon/mozeidon-native-app
+brew install colangelo/tap/mozeidon-z-messaging
 ```
 
-Or download from the [release page](https://github.com/egovelox/mozeidon-native-app/releases), or build from source.
+It's also pulled automatically as a dependency of `brew install colangelo/tap/mozeidon-z`. Or download from the [release page](https://github.com/colangelo/mozeidon-z-messaging/releases), or build from source.
 
 ### Configure Native Messaging (Required)
 
@@ -148,7 +147,7 @@ Create `~/Library/Application Support/Mozilla/NativeMessagingHosts/mozeidon.json
 {
   "name": "mozeidon",
   "description": "Mozeidon native messaging host",
-  "path": "/opt/homebrew/bin/mozeidon-native-app",
+  "path": "/opt/homebrew/bin/mozeidon-z-messaging",
   "type": "stdio",
   "allowed_extensions": [
     "mozeidon-addon@egovelox.com",
@@ -180,7 +179,7 @@ mozeidon tabs pick
 ### Install (Homebrew) or build from source
 
 ```bash
-# Homebrew tap (recommended) — also installs the mozeidon-native-app bridge
+# Homebrew tap (recommended) — also installs the mozeidon-z-messaging bridge
 brew install colangelo/tap/mozeidon-z
 
 # …or build from this repo:

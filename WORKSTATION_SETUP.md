@@ -16,13 +16,13 @@ per-component detail lives in each component's own README/CLAUDE.
 ```
 Firefox extension          native-app (Homebrew)              CLI (Homebrew tap)        front-end
 mozeidon-z@a-layer.io  ──►  /opt/homebrew/bin/            ──►  /opt/homebrew/bin/     ──►  Raycast
-(this repo's firefox-addon)  mozeidon-native-app 4.0.0          mozeidon-z 5.0.2           (raycast/ ext)
+(this repo's firefox-addon)  mozeidon-z-messaging               mozeidon-z 5.0.2           (raycast/ ext)
    v5.0.0                    (native-messaging bridge)          (colangelo/tap)
 ```
 
 - The browser talks to a **native-messaging host** declared at
   `~/Library/Application Support/Mozilla/NativeMessagingHosts/mozeidon.json`, which points
-  at the Homebrew `mozeidon-native-app`. Allowed extensions:
+  at the Homebrew `mozeidon-z-messaging`. Allowed extensions:
   `mozeidon-z@a-layer.io`, `mozeidon@anthropic.github.io`, `mozeidon-dev@ac.local`
   (written by `just setup-native-messaging`).
 - The native app shells out to the **CLI on `PATH`**, which is the Homebrew-tap binary
@@ -36,7 +36,7 @@ End-to-end smoke test:
 ```bash
 mozeidon-z --version     # → mozeidon-z version 5.0.2 (Homebrew tap)
 mozeidon-z tabs get      # streams JSON of open Firefox tabs (needs Firefox open w/ ext)
-pgrep -fl mozeidon-native-app   # bridge process, spawned by Firefox
+pgrep -fl mozeidon-z-messaging   # bridge process, spawned by Firefox
 ```
 
 ---
@@ -48,14 +48,16 @@ pgrep -fl mozeidon-native-app   # bridge process, spawned by Firefox
 | **CLI** | **here** (`cli/`); shipped via **Homebrew tap** `colangelo/tap` | `/opt/homebrew/bin/mozeidon-z` (on `PATH`) | 5.0.2 | `brew install colangelo/tap/mozeidon-z` — released by GitHub Actions (see [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md)). Dev builds: `just install-cli` → `~/.local/bin/mozeidon-z`. |
 | **Firefox extension** | **here** (`firefox-addon/`) | loaded in Firefox as `mozeidon-z@a-layer.io` | 5.0.0 | Built `.xpi` is a gitignored artifact; release via `just submit-firefox` (AMO, auto-updates installs). |
 | **Chrome extension** | **here** (`chrome-addon/`) | not loaded | 5.0.0 | `chrome-addon/src/` is generated from `firefox-addon/src/` (verbatim copy by `just build-chrome`) and gitignored. Kept in sync for completeness; not in active use. |
-| **native-app** | **Homebrew** `egovelox/mozeidon` tap | `/opt/homebrew/bin/mozeidon-native-app` | 4.0.0 | **Not built here.** The actual browser bridge. Installed *on request* (a `brew leaves` leaf). Keep it. |
+| **native-app** | **fork** `colangelo/mozeidon-z-messaging` (own repo), shipped via `colangelo/tap` | `/opt/homebrew/bin/mozeidon-z-messaging` | 1.0.0 | The browser bridge. Built in its own repo; pulled automatically by `brew install colangelo/tap/mozeidon-z` via `depends_on`. |
 | **Raycast extension** | **here** (`raycast/`) | Raycast dev extension | — | Primary front-end. Raycast handles its own versioning (no semver in `package.json`). |
 
 ### Not built here, and why it doesn't matter
 
-- **`mozeidon-native-app`** — we use the stock Homebrew build. The project does not modify it;
-  it is a transparent `{command, args}` proxy. The only upstream divergence that ever touched
-  it is multi-browser/profile support, which the native-app 4.0.0 release already covers.
+- **`mozeidon-z-messaging`** — the bridge, now a **hard fork** of `egovelox/mozeidon-native-app`
+  in its own repo (`colangelo/mozeidon-z-messaging`), shipped via `colangelo/homebrew-tap` and
+  pulled automatically by `brew install colangelo/tap/mozeidon-z` via `depends_on`. We added
+  `--version`/`--help` + hardening but keep its **wire protocol frozen** (host name `mozeidon`,
+  IPC socket `mozeidon_native_app`), so it stays a drop-in transparent `{command, args}` proxy.
 - **`mozeidon-macos-ui`** — a stock egovelox Swift menu-bar app (a Spotlight-style
   alternative front-end). **Never built here, never used** — superseded by Raycast. Removed
   2026-06-14 (see audit).
@@ -135,6 +137,24 @@ unrelated to this fork. Only the **native-app** belongs to the egovelox tap.
 
 ## Audit log
 
+### 2026-06-22 — native-app forked + renamed to `mozeidon-z-messaging`
+
+**Context**
+- The native-messaging bridge was previously sourced from `egovelox/mozeidon-native-app` via the
+  `egovelox/mozeidon` Homebrew tap. To give the project full control over the bridge (versioning,
+  security fixes, distribution), the native-app was forked into `colangelo/mozeidon-z-messaging`
+  and published to `colangelo/homebrew-tap`.
+
+**Actions**
+1. **Bridge renamed** `mozeidon-native-app` → `mozeidon-z-messaging` (binary + formula). The IPC
+   socket name (`mozeidon_native_app`) and native-messaging host name (`"mozeidon"`) are unchanged —
+   no AMO or extension change required.
+2. **CLI formula `depends_on`** updated from `"egovelox/mozeidon/mozeidon-native-app"` to
+   `"colangelo/mozeidon-z-messaging"` (in `.github/workflows/release.yml` `FORMULA_B64`).
+3. **`just setup-native-messaging`** manifest `"path"` updated to `/opt/homebrew/bin/mozeidon-z-messaging`.
+4. **Docs** — live-pipeline diagram, component inventory, and prose updated throughout to reference
+   `mozeidon-z-messaging` (shipped via `colangelo/homebrew-tap`). Historical audit entries preserved as-is.
+
 ### 2026-06-22 — public distribution via Homebrew tap + CLI rename
 
 **Findings**
@@ -149,7 +169,7 @@ unrelated to this fork. Only the **native-app** belongs to the egovelox tap.
    tag on GitHub `origin` → cross-compile (darwin/linux × arm64/amd64) → cosign-sign → **public
    GitHub Release** → auto-bump the formula in **`colangelo/homebrew-tap`** (needs the
    `HOMEBREW_TAP_TOKEN` secret). Woodpecker is now **build-CI only** (release steps removed).
-3. **Install is now** `brew install colangelo/tap/mozeidon-z` (also pulls the `mozeidon-native-app`
+3. **Install is now** `brew install colangelo/tap/mozeidon-z` (also pulls the `mozeidon-z-messaging`
    bridge via `depends_on`). Removed the orphaned `~/.local/bin/mozeidon` (old 4.1.1 build).
 4. **Docs** — rewrote [`CI_RELEASE_RUNBOOK.md`](CI_RELEASE_RUNBOOK.md) for the GitHub Actions +
    Homebrew flow (one-time prereqs, the `HOMEBREW_TAP_TOKEN` secret, the `gh --repo` gotcha, and the

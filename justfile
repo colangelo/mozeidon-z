@@ -156,7 +156,7 @@ package-chrome:
 # Install Firefox native messaging manifest (required for CLI <-> extension communication)
 setup-native-messaging:
     mkdir -p ~/Library/Application\ Support/Mozilla/NativeMessagingHosts
-    @echo '{"name":"mozeidon","description":"Mozeidon native messaging host","path":"/opt/homebrew/bin/mozeidon-native-app","type":"stdio","allowed_extensions":["mozeidon-z@a-layer.io","mozeidon@anthropic.github.io","mozeidon-dev@ac.local"]}' > ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon.json
+    @echo '{"name":"mozeidon","description":"Mozeidon native messaging host","path":"/opt/homebrew/bin/mozeidon-z-messaging","type":"stdio","allowed_extensions":["mozeidon-z@a-layer.io","mozeidon@anthropic.github.io","mozeidon-dev@ac.local"]}' > ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon.json
     @echo "Created native messaging manifest. Restart Firefox to apply."
     @cat ~/Library/Application\ Support/Mozilla/NativeMessagingHosts/mozeidon.json | jq .
 
