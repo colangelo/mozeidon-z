@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/egovelox/mozeidon/debug"
 )
 
 // Profile represents a running native-app instance
@@ -129,10 +131,13 @@ func GetAllProfiles() ([]Profile, error) {
 		if isProcessRunning(profile.Pid) {
 			profiles = append(profiles, profile)
 		} else {
-			// remove file is process is not running
-			err := os.Remove(filePath)
-			if err != nil {
-				return nil, fmt.Errorf("error deleting file in %s directory: %w", mozeidonProfilesDir, err)
+			// Native app is gone — prune the stale profile file. If it can't be
+			// removed (e.g. permissions), skip it rather than failing the whole
+			// command: one un-removable leftover shouldn't break every lookup.
+			if err := os.Remove(filePath); err != nil {
+				debug.Logf("could not remove stale profile %s: %v", entry.Name(), err)
+			} else {
+				debug.Logf("pruned stale profile %s (pid %d not running)", entry.Name(), profile.Pid)
 			}
 		}
 	}
@@ -170,21 +175,28 @@ func GetProfileById(profileId string) (*Profile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting profiles: %w", err)
 	}
+	debug.Logf("found %d connected profile(s)", len(allProfiles))
 
 	if profileId == "" {
 		// No ID provided, use preferred
-		return GetPreferredProfile(&allProfiles)
+		p, err := GetPreferredProfile(&allProfiles)
+		if err == nil {
+			debug.Logf("selected profile %q (%s, rank %d) ipc=%s", p.ProfileId, p.BrowserName, p.ProfileRank, p.IpcName)
+		}
+		return p, err
 	}
 
 	// Find by profileId
 	for i := range allProfiles {
 		if allProfiles[i].ProfileId == profileId {
+			debug.Logf("matched profile by id %q ipc=%s", profileId, allProfiles[i].IpcName)
 			return &allProfiles[i], nil
 		}
 	}
 	// Find by profileAlias
 	for i := range allProfiles {
 		if allProfiles[i].ProfileAlias == profileId {
+			debug.Logf("matched profile by alias %q ipc=%s", profileId, allProfiles[i].IpcName)
 			return &allProfiles[i], nil
 		}
 	}

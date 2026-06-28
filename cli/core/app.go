@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/egovelox/mozeidon/browser/core"
+	"github.com/egovelox/mozeidon/debug"
 	"github.com/egovelox/mozeidon/profiles"
 )
 
@@ -21,6 +22,7 @@ func NewAppWithProfile(profileId string) (*App, error) {
 	if err != nil {
 		// Fallback to legacy IPC name when no profiles are registered
 		// (e.g. when using a pre-v4 native app)
+		debug.Logf("no matching profile (%v); falling back to legacy ipc %q", err, "mozeidon_native_app")
 		profile = &profiles.Profile{
 			IpcName: "mozeidon_native_app",
 		}
