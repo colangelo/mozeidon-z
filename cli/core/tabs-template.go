@@ -23,7 +23,7 @@ func (a *App) TabsTemplate(template string, recentlyClosed bool, latest10First b
 			args = ""
 		}
 	}
-	
+
 	returnCode := 0
 	for response := range a.browser.Send(
 		models.Command{
@@ -56,7 +56,7 @@ func (a *App) TabsTemplate(template string, recentlyClosed bool, latest10First b
 			os.Exit(1)
 		}
 	}
-	
+
 	if returnCode != 0 {
 		os.Exit(1)
 	}

@@ -37,20 +37,20 @@ var (
 
 // pickerModel is the bubbletea model for the tab picker
 type pickerModel struct {
-	app           *App
-	tabs          []models.Tab
-	filtered      []models.Tab
-	matches       []fuzzy.Match
-	cursor        int
-	textInput     textinput.Model
-	loopMode      bool
-	demoMode      bool
-	width         int
-	height        int
-	err           error
-	selected      *models.Tab
-	shouldQuit    bool
-	needsRefresh  bool
+	app          *App
+	tabs         []models.Tab
+	filtered     []models.Tab
+	matches      []fuzzy.Match
+	cursor       int
+	textInput    textinput.Model
+	loopMode     bool
+	demoMode     bool
+	width        int
+	height       int
+	err          error
+	selected     *models.Tab
+	shouldQuit   bool
+	needsRefresh bool
 }
 
 // tabMatchSource implements fuzzy.Source for tab matching

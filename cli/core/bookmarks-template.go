@@ -43,7 +43,7 @@ func (a *App) BookmarksTemplate(template string, max int64, chunkSize int64) {
 			os.Exit(1)
 		}
 	}
-	
+
 	if returnCode != 0 {
 		os.Exit(1)
 	}
