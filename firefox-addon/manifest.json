@@ -2,7 +2,7 @@
   "description": "Native messaging add-on to interact with mozilla tabs and bookmarks",
   "manifest_version": 2,
   "name": "Mozeidon-Z",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "homepage_url": "https://github.com/colangelo/mozeidon-z",
   "author": "A-Layer <acola@pm.me>",
   "icons": {
