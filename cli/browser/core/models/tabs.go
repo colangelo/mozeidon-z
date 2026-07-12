@@ -31,4 +31,5 @@ type Tab struct {
 	Active       bool   `json:"active"`
 	LastAccessed int64  `json:"lastAccessed"`
 	Index        int64  `json:"index"`
+	OpenerTabId  int64  `json:"openerTabId"`
 }

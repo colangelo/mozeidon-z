@@ -224,6 +224,7 @@ export async function getTabs(port: Port, { command: _cmd, args }: Command) {
       domain: tab.url ? new URL(tab.url).hostname : "",
       lastAccessed: tab.lastAccessed ? Math.round(tab.lastAccessed) : 0,
       index: tab.index,
+      openerTabId: tab.openerTabId ?? -1,
     }))
     port.postMessage(Response.data(tabs))
     // pause 10ms, or this end message may be received before the message above
