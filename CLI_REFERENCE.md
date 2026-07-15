@@ -11,6 +11,7 @@ Mozeidon is a CLI tool to control browsers from the Firefox or Chromium families
   - [Bookmark Operations](#bookmark-operations)
   - [History](#history)
   - [Groups](#groups)
+  - [Windows](#windows)
 
 ---
 
@@ -598,6 +599,132 @@ mozeidon groups update --group-id 1757435983351019 --index 0
 
 # Update multiple properties (except index)
 mozeidon groups update --group-id 1757435983351019 --title "Dev" --color green
+```
+
+---
+
+## Windows
+
+Manage browser windows. A window `id` is the same value used as the `{windowId}` half of a
+`{windowId}:{tabId}` tab id, so it maps directly to `tabs get`.
+
+### `windows get`
+
+Get all open windows. Each window reports its `id`, whether it is `focused`, its `tabCount`
+and the active tab's `activeTabTitle`/`activeTabUrl`, plus `state`, `type`, `incognito`, and
+geometry (`top`/`left`/`width`/`height`).
+
+**Usage:**
+```bash
+mozeidon windows get [flags]
+```
+
+**Optional Flags:**
+- `-t, --go-template <template>` - Go template to customize output
+
+**Examples:**
+```bash
+# All windows as JSON
+mozeidon windows get
+
+# id, tab count and active-tab title per window
+mozeidon windows get -t '{{range .Items}}{{.Id}}  {{.TabCount}} tabs  {{.ActiveTabTitle}}{{"\n"}}{{end}}'
+```
+
+---
+
+### `windows focus`
+
+Focus a window and bring it to the foreground (on macOS it is also raised above other apps).
+
+**Usage:**
+```bash
+mozeidon windows focus <windowId>
+```
+
+**Examples:**
+```bash
+mozeidon windows focus 1
+```
+
+---
+
+### `windows new`
+
+Open a new window, optionally with one or more urls, private (incognito), and/or an initial state.
+
+**Usage:**
+```bash
+mozeidon windows new [flags]
+```
+
+**Optional Flags:**
+- `-u, --url <url>` - URL to open (repeatable)
+- `-p, --private` - Open a private (incognito) window
+- `-s, --state <state>` - Initial window state: `normal`, `minimized`, `maximized`, `fullscreen`
+
+**Examples:**
+```bash
+# New window with two tabs
+mozeidon windows new -u https://example.com -u https://mozilla.org
+
+# New maximized private window
+mozeidon windows new -p -s maximized
+```
+
+---
+
+### `windows close`
+
+Close a window, closing all of its tabs. Guarded by a `[y/N]` confirmation prompt (a window
+takes out all of its tabs at once); pass `-y/--yes` to skip it in scripts.
+
+**Usage:**
+```bash
+mozeidon windows close <windowId> [-y]
+```
+
+**Optional Flags:**
+- `-y, --yes` - Skip the confirmation prompt
+
+**Examples:**
+```bash
+# Prompts before closing
+mozeidon windows close 1
+
+# No prompt (scripts)
+mozeidon windows close 1 -y
+```
+
+---
+
+### `windows update`
+
+Update a window's `state` or its geometry. State and geometry are mutually exclusive (a
+maximized/minimized/fullscreen window cannot also be positioned).
+
+**Usage:**
+```bash
+mozeidon windows update <windowId> [flags]
+```
+
+**Optional Flags (at least one required):**
+- `-s, --state <state>` - `normal`, `minimized`, `maximized`, `fullscreen`
+- `--top <px>` - Window top position
+- `--left <px>` - Window left position
+- `--width <px>` - Window width
+- `--height <px>` - Window height
+
+**Mutually Exclusive:**
+- `--state` and any of `--top` / `--left` / `--width` / `--height`
+
+**Examples:**
+```bash
+# Maximize a window
+mozeidon windows update 1 -s maximized
+
+# Resize and reposition
+mozeidon windows update 1 --width 1200 --height 800 --top 0 --left 0
 ```
 
 ---
