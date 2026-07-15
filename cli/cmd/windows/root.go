@@ -12,6 +12,7 @@ var WindowsCmd = &cobra.Command{
 
 func init() {
 	WindowsCmd.AddCommand(GetWindowsCmd)
+	WindowsCmd.AddCommand(PickWindowCmd)
 	WindowsCmd.AddCommand(FocusWindowCmd)
 	WindowsCmd.AddCommand(NewWindowCmd)
 	WindowsCmd.AddCommand(CloseWindowCmd)

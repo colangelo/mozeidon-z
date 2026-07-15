@@ -633,6 +633,36 @@ mozeidon windows get -t '{{range .Items}}{{.Id}}  {{.TabCount}} tabs  {{.ActiveT
 
 ---
 
+### `windows pick`
+
+Interactive fuzzy window picker (TUI), the window equivalent of `tabs pick`. Fuzzy-search
+windows by active-tab title, host and window id; the last-focused window is listed first and
+marked with ●. Press Enter to focus (and raise) the selected window.
+
+**Usage:**
+```bash
+mozeidon windows pick [flags]
+mozeidon windows p            # alias
+```
+
+**Optional Flags:**
+- `-l, --loop` - Stay open after focusing a window (Esc to exit)
+- `-d, --demo` - Use demo data (for testing without a browser)
+
+**Keyboard shortcuts:**
+- `Enter` - Focus the selected window
+- `↑`/`↓` or `j`/`k` - Navigate
+- `R` - Refresh the window list
+- `Esc` - Cancel and exit
+
+**Examples:**
+```bash
+mozeidon windows pick
+mozeidon windows pick --loop
+```
+
+---
+
 ### `windows focus`
 
 Focus a window and bring it to the foreground (on macOS it is also raised above other apps).
