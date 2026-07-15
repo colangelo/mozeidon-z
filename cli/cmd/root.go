@@ -15,7 +15,7 @@ import (
 	"github.com/egovelox/mozeidon/cmd/windows"
 )
 
-var Version = "5.2.1"
+var Version = "5.2.2"
 
 var rootCmd = &cobra.Command{
 	Use:     "mozeidon-z",
