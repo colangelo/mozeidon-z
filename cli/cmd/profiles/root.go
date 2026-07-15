@@ -5,8 +5,9 @@ import (
 )
 
 var ProfilesCmd = &cobra.Command{
-	Use:   "profiles",
-	Short: "Manage browser profiles",
+	Use:     "profiles",
+	Aliases: []string{"prof", "profile"},
+	Short:   "Manage browser profiles",
 }
 
 func init() {

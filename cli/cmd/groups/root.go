@@ -5,7 +5,8 @@ import (
 )
 
 var GroupsCmd = &cobra.Command{
-	Use: "groups",
+	Use:     "groups",
+	Aliases: []string{"g", "group"},
 }
 
 func init() {

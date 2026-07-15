@@ -13,8 +13,9 @@ var chunk int64
 var md5Hash string
 
 var BookmarksCmd = &cobra.Command{
-	Use:   "bookmarks",
-	Short: "Get bookmarks",
+	Use:     "bookmarks",
+	Aliases: []string{"bms"},
+	Short:   "Get bookmarks",
 	Long: "Get bookmarks" +
 		"\n\n" +
 		"You can get bookmarks items" +

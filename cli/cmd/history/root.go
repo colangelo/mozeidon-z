@@ -12,8 +12,9 @@ var maximum int64
 var chunk int64
 
 var HistoryCmd = &cobra.Command{
-	Use:   "history",
-	Short: "Get history",
+	Use:     "history",
+	Aliases: []string{"h", "hist"},
+	Short:   "Get history",
 	Long: "Get history" +
 		"\n\n" +
 		"You may get items" +

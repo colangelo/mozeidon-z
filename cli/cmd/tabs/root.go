@@ -5,7 +5,8 @@ import (
 )
 
 var TabsCmd = &cobra.Command{
-	Use: "tabs",
+	Use:     "tabs",
+	Aliases: []string{"t", "tab"},
 }
 
 func init() {

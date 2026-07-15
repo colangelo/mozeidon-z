@@ -5,9 +5,10 @@ import (
 )
 
 var WindowsCmd = &cobra.Command{
-	Use:   "windows",
-	Short: "Interact with browser windows",
-	Long:  "Retrieve browser windows, focus/create/close them, or change their state.",
+	Use:     "windows",
+	Aliases: []string{"w", "win", "window"},
+	Short:   "Interact with browser windows",
+	Long:    "Retrieve browser windows, focus/create/close them, or change their state.",
 }
 
 func init() {
