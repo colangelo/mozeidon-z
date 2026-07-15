@@ -18,7 +18,13 @@ import {
 } from "./services/tabs"
 import { updateProfiles } from "./services/profiles"
 import { getGroups, moveGroup, updateGroup } from "./services/groups"
-import { getWindows } from "./services/windows"
+import {
+  getWindows,
+  focusWindow,
+  newWindow,
+  closeWindow,
+  updateWindow,
+} from "./services/windows"
 
 export async function handler(port: Port, cmd: Command) {
   switch (cmd.command) {
@@ -58,6 +64,14 @@ export async function handler(port: Port, cmd: Command) {
       return await updateProfiles(port, cmd)
     case CommandName.GET_WINDOWS:
       return await getWindows(port, cmd)
+    case CommandName.FOCUS_WINDOW:
+      return await focusWindow(port, cmd)
+    case CommandName.NEW_WINDOW:
+      return await newWindow(port, cmd)
+    case CommandName.CLOSE_WINDOW:
+      return await closeWindow(port, cmd)
+    case CommandName.UPDATE_WINDOW:
+      return await updateWindow(port, cmd)
     default:
       log("unknown command received in handler")
       return port.postMessage(Response.end())

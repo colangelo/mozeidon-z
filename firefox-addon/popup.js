@@ -9,6 +9,15 @@ document.getElementById("amo").href =
   "https://addons.mozilla.org/firefox/addon/mozeidon-z/"
 document.getElementById("foot").textContent = manifest.name + " · MIT"
 
+// Current window id — matches the `windowId` half of Mozeidon's `windowId:tabId`
+// tab-ID format, so you can tell which Firefox window a tab like `3289:596` is in.
+browser.windows
+  .getCurrent()
+  .then((w) => {
+    document.getElementById("window").textContent = "Window " + w.id
+  })
+  .catch(() => {})
+
 // Connection status — ask the background for the current native-app port state.
 function setStatus(connected) {
   const dot = document.getElementById("dot")
